@@ -1,5 +1,5 @@
 import unittest
-import structio
+from structio import *
 
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
