@@ -5,7 +5,7 @@ A small Python library based on the BytesIO object from the standard library, de
 Using pip: 
 
 ```
-> pip install structio
+pip install structio
 ```
 
 ### Example
