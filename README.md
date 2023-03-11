@@ -1,6 +1,14 @@
 A small Python library based on the BytesIO object from the standard library, designed to make parsing and editing binary files easier.
 
-## Example
+### Installation
+
+Using pip: 
+
+```
+> pip install structio
+```
+
+### Example
 
 Writing to a stream:
 
@@ -36,7 +44,7 @@ Reading from the same stream:
 'World!'
 ```
 
-## Functions
+### Functions
 
 **unpack_bool(b)**
 
@@ -102,9 +110,9 @@ Converts bytes representing a 7 bit integer (Variable Length Quantity) into an i
 
 Converts *number* into a 7 bit integer.
 
-## Objects
+### Objects
 
-## StructIO
+### StructIO
 
 File-like object stored in memory. Extends *io.BytesIO* from the standard library, which means that it has all of the basic methods of file-like objects, including *read*, *write*, *seek*, *tell*, and *truncate*.
 
