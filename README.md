@@ -200,7 +200,7 @@ Same as *write_int* but appends the value to the object at the current position 
 
 **read_float(numbytes, endian=None)**
 
-Reads the next 4 bytes from the object and converts them into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
+Reads the next *numbytes* from the object and converts them into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **write_float(number, numbytes, endian=None)**
 
