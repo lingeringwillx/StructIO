@@ -19,7 +19,7 @@ Writing to a stream:
 2
 >>> stream.write_float(3.14)
 4
->>> stream.write_str('Hello', null_term=True)
+>>> stream.write_cstr('Hello')
 6
 >>> stream.write_pstr('World!', 1)
 7
@@ -38,7 +38,7 @@ Reading from the same stream:
 10
 >>> stream.read_float()
 3.140000104904175
->>> stream.read_str()
+>>> stream.read_cstr()
 'Hello'
 >>> stream.read_pstr(1)
 'World!'
