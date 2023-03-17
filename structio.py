@@ -54,7 +54,11 @@ def pack_str(string):
     return string.encode('utf-8', errors='ignore')
     
 def unpack_cstr(b, start=0):
-    end = b.index(b'\x00', start)
+    end = b.find(b'\x00', start)
+    
+    if end == -1:
+        raise ValueError('null termination not found')
+        
     return unpack_str(b[start:end])
     
 def pack_cstr(string):
@@ -211,7 +215,11 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, start + length, pack_str(string))
         
     def read_cstr(self):
-        end = self.index(b'\x00')
+        end = self.find(b'\x00')
+        
+        if end == -1:
+            raise ValueError('null termination not found')
+            
         start = self.tell()
         string = unpack_str(self.read(end - start))
         self.seek(1, 1)
@@ -224,9 +232,13 @@ class StructIO(io.BytesIO):
         return self.append(pack_cstr(string))
         
     def overwrite_cstr(self, string):
-        end = self.index(b'\x00')
+        end = self.find(b'\x00')
+        
+        if end == -1:
+            raise ValueError('null termination not found')
+            
         start = self.tell()
-        return self.overwrite(start, end, pack_str(string))
+        return self.overwrite(start, end + 1, pack_cstr(string))
         
     def read_pstr(self, numbytes, endian=None):
         return self.read_str(self.read_int(numbytes, endian))
@@ -239,7 +251,7 @@ class StructIO(io.BytesIO):
         
     def overwrite_pstr(self, string, numbytes, endian=None):
         start = self.tell()
-        length = self.read_int(numbytes)
+        length = self.read_int(numbytes, endian)
         return self.overwrite(start, start + numbytes + length, pack_pstr(string, numbytes, self._get_endian(endian)))
         
     def read_7bint(self):

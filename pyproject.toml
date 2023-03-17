@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "structio"
-version = "1.0.5"
-description = "A Library for unparsing, parsing, and editing binaries"
+version = "1.0.6"
+description = "A Library for unparsing, parsing, and editing binary files"
 readme = "README.md"
 requires-python = ">=3.2"
 

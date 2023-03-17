@@ -258,6 +258,7 @@ class ReadWriteMethodsTest(unittest.TestCase):
         stream.write_7bint(128)
         stream.seek(0)
         self.assertEqual(128, stream.read_7bint()) #default endian
+        self.assertEqual(2, stream.tell())
         
 class AppendOverwriteMethodsTest(unittest.TestCase):
     def testappendbool(self):
@@ -447,9 +448,9 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         stream.write_cstr('Unit Test')
         stream.seek(0)
         stream.overwrite_cstr('Working')
+        self.assertEqual(8, stream.tell())
         stream.seek(0)
         self.assertEqual('Working', stream.read_cstr())
-        self.assertEqual(8, stream.tell())
         
     def testoverwritepstr(self):
         stream = StructIO(endian='little')
