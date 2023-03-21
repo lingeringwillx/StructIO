@@ -83,18 +83,18 @@ class Struct:
         if end == -1:
             raise ValueError('null termination not found')
             
-        return self.unpack_str(b[start:end], self._get_encoding(encoding), self._get_errors(errors))
+        return self.unpack_str(b[start:end], encoding, errors)
         
     def pack_cstr(self, string, encoding=None, errors=None):
-        return self.pack_str(string, self._get_encoding(encoding), self._get_errors(errors)) + b'\x00'
+        return self.pack_str(string, encoding, errors) + b'\x00'
         
     def unpack_pstr(self, b, numbytes, endian=None, start=0, encoding=None, errors=None):
         int_end = start + numbytes
-        length = self.unpack_int(b[start:int_end], self._get_endian(endian))
-        return self.unpack_str(b[int_end:(int_end + length)], self._get_encoding(encoding), self._get_errors(errors))
+        length = self.unpack_int(b[start:int_end], endian)
+        return self.unpack_str(b[int_end:(int_end + length)], encoding, errors)
         
     def pack_pstr(self, string, numbytes, endian=None, encoding=None, errors=None):
-        return self.pack_int(len(string), numbytes, self._get_endian(endian)) + self.pack_str(string, self._get_encoding(encoding), self._get_errors(errors))
+        return self.pack_int(len(string), numbytes, endian) + self.pack_str(string, encoding, errors)
         
     def unpack_7bint(self, b, start=0):
         number = 0
@@ -219,35 +219,35 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_bits(bits))
         
     def read_int(self, numbytes, endian=None, signed=False):
-        return self._struct.unpack_int(self.read(numbytes), self._struct._get_endian(endian), signed)
+        return self._struct.unpack_int(self.read(numbytes), endian, signed)
         
     def write_int(self, number, numbytes, endian=None, signed=False):
-        return self.write(self._struct.pack_int(number, numbytes, self._struct._get_endian(endian), signed))
+        return self.write(self._struct.pack_int(number, numbytes, endian, signed))
         
     def append_int(self, number, numbytes, endian=None, signed=False):
-        return self.append(self._struct.pack_int(number, numbytes, self._struct._get_endian(endian), signed))
+        return self.append(self._struct.pack_int(number, numbytes, endian, signed))
         
     def read_float(self, numbytes, endian=None):
-        return self._struct.unpack_float(self.read(numbytes), numbytes, self._struct._get_endian(endian))
+        return self._struct.unpack_float(self.read(numbytes), numbytes, endian)
         
     def write_float(self, number, numbytes, endian=None):
-        return self.write(self._struct.pack_float(number, numbytes, self._struct._get_endian(endian)))
+        return self.write(self._struct.pack_float(number, numbytes, endian))
         
     def append_float(self, number, numbytes, endian=None):
-        return self.append(self._struct.pack_float(number, numbytes, self._struct._get_endian(endian)))
+        return self.append(self._struct.pack_float(number, numbytes, endian))
         
     def read_str(self, length, encoding=None, errors=None):
-        return self._struct.unpack_str(self.read(length), self._struct._get_encoding(encoding), self._struct._get_errors(errors))
+        return self._struct.unpack_str(self.read(length), encoding, errors)
         
     def write_str(self, string, encoding=None, errors=None):
-        return self.write(self._struct.pack_str(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.write(self._struct.pack_str(string, encoding, errors))
         
     def append_str(self, string, encoding=None, errors=None):
-        return self.append(self._struct.pack_str(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.append(self._struct.pack_str(string, encoding, errors))
         
     def overwrite_str(self, string, length, encoding=None, errors=None):
         start = self.tell()
-        return self.overwrite(start, start + length, self._struct.pack_str(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.overwrite(start, start + length, self._struct.pack_str(string, encoding, errors))
         
     def read_cstr(self, encoding=None, errors=None):
         end = self.find(b'\x00')
@@ -256,15 +256,15 @@ class StructIO(io.BytesIO):
             raise ValueError('null termination not found')
             
         start = self.tell()
-        string = self._struct.unpack_str(self.read(end - start), self._struct._get_encoding(encoding), self._struct._get_errors(errors))
+        string = self._struct.unpack_str(self.read(end - start), encoding, errors)
         self.seek(1, 1)
         return string
         
     def write_cstr(self, string, encoding=None, errors=None):
-        return self.write(self._struct.pack_cstr(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.write(self._struct.pack_cstr(string, encoding, errors))
         
     def append_cstr(self, string, encoding=None, errors=None):
-        return self.append(self._struct.pack_cstr(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.append(self._struct.pack_cstr(string, encoding, errors))
         
     def overwrite_cstr(self, string, encoding=None, errors=None):
         end = self.find(b'\x00')
@@ -273,21 +273,21 @@ class StructIO(io.BytesIO):
             raise ValueError('null termination not found')
             
         start = self.tell()
-        return self.overwrite(start, end + 1, self._struct.pack_cstr(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.overwrite(start, end + 1, self._struct.pack_cstr(string, encoding, errors))
         
     def read_pstr(self, numbytes, endian=None, encoding=None, errors=None):
-        return self.read_str(self.read_int(numbytes, endian), self._struct._get_encoding(encoding), self._struct._get_errors(errors))
+        return self.read_str(self.read_int(numbytes, endian), encoding, errors)
         
     def write_pstr(self, string, numbytes, endian=None, encoding=None, errors=None):
-        return self.write_int(len(string), numbytes, endian) + self.write_str(string, self._struct._get_encoding(encoding), self._struct._get_errors(errors))
+        return self.write_int(len(string), numbytes, endian) + self.write_str(string, encoding, errors)
         
     def append_pstr(self, string, numbytes, endian=None, encoding=None, errors=None):
-        return self.append(self._struct.pack_pstr(string, numbytes, self._struct._get_endian(endian), self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.append(self._struct.pack_pstr(string, numbytes, endian, encoding, errors))
         
     def overwrite_pstr(self, string, numbytes, endian=None, encoding=None, errors=None):
         start = self.tell()
         length = self.read_int(numbytes, endian)
-        return self.overwrite(start, start + numbytes + length, self._struct.pack_pstr(string, numbytes, self._struct._get_endian(endian), self._struct._get_encoding(encoding), self._struct._get_errors(errors)))
+        return self.overwrite(start, start + numbytes + length, self._struct.pack_pstr(string, numbytes, endian, encoding, errors))
         
     def read_7bint(self):
         number = 0

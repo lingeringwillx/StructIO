@@ -46,7 +46,8 @@ class PackunpackFunctionsTest(unittest.TestCase):
         self.assertEqual('Test', struct.unpack_cstr(b'Unit\x00Test\x00', 5))
         
     def testpstr(self):
-        struct = Struct()
+        struct = Struct('big')
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2), 2)) #default endian
         self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'little'), 2, 'little')) #little endian
         self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'big'), 2, 'big')) #big endian
         
@@ -481,7 +482,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Working', stream.read_cstr())
         
     def testoverwritepstr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit Test', 2)
         stream.seek(0)
         stream.overwrite_pstr('Working', 3)
