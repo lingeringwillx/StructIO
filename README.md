@@ -61,6 +61,7 @@ Contains methods for unpacking and packing various data types.
 ### Methods
 
 **Struct(endian='little', encoding='utf-8', errors='ignore')**
+
 Creates a new *Struct* object with the provided arguments as defaults. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*.
 
 **unpack_bool(b)**
@@ -143,7 +144,7 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Methods
 
-**StructIO(b='', endian='little', encoding='utf-8', errors='ignore')**
+**StructIO(b=b'', endian='little', encoding='utf-8', errors='ignore')**
 
 Take bytes object *b* and returns a *StructIO* instance containing *b*. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*.
 
