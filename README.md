@@ -230,11 +230,11 @@ Same as *write_float* but appends the value to the object at the current positio
 
 **read_str(length, encoding=None, errors=None)**
 
-Reads a string with length *length* from the object. The *encoding* and *errors* arguments are the same as the ones found in the [str.encode](https://docs.python.org/3/library/stdtypes.html#str.encode) and [bytes.decode](https://docs.python.org/3/library/stdtypes.html#bytes.decode) methods from the Python standard library.
+Reads a string with length *length* from the object.
 
 **write_str(string, encoding=None, errors=None)**
 
-Writes *string* into the object. The *encoding* and *errors* arguments are the same as the ones found in the [str.encode](https://docs.python.org/3/library/stdtypes.html#str.encode) and [bytes.decode](https://docs.python.org/3/library/stdtypes.html#bytes.decode) methods from the Python standard library.
+Writes *string* into the object.
 
 **append_str(string, encoding=None, errors=None)**
 
