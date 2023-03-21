@@ -1,5 +1,5 @@
 import io
-import _struct
+import struct
 
 _endians = {'big': '>', 'little': '<'}
 _float_formats = {2: 'e', 4: 'f', 8: 'd'} 
