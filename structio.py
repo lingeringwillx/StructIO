@@ -42,13 +42,13 @@ class Struct:
             
     def unpack_bits(self, b):
         if len(b) == 1:
-            number = self.unpack_int(b, 'big') 
+            number = self.unpack_int(b) 
             return [number >> i & 1 for i in range(8)]
         else:
             raise ValueError('expected bytes object of length 1')
             
     def pack_bits(self, bits):
-        return self.pack_int(sum(bits[i] << i for i in range(8)), 1, 'big')
+        return self.pack_int(sum(bits[i] << i for i in range(8)), 1)
         
     def unpack_int(self, b, endian=None, signed=False):
         return int.from_bytes(b, self._get_endian(endian), signed=signed)
@@ -115,10 +115,10 @@ class Struct:
         b = bytearray()
         
         while number > 127:
-            b += self.pack_int(number & 0b01111111 | 0b10000000, 1, 'big') 
+            b += self.pack_int(number & 0b01111111 | 0b10000000, 1) 
             number >>= 7
             
-        b += self.pack_int(number, 1, 'big')
+        b += self.pack_int(number, 1)
         return b
         
 class StructIO(io.BytesIO):
