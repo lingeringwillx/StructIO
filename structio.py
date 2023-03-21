@@ -66,10 +66,10 @@ class Struct:
         return _endians[self._get_endian(endian)] + _float_formats[numbytes]
         
     def unpack_float(self, b, numbytes, endian=None):
-        return _struct.unpack(self._get_format(numbytes, self._get_endian(endian)), b)[0]
+        return struct.unpack(self._get_format(numbytes, self._get_endian(endian)), b)[0]
         
     def pack_float(self, number, numbytes, endian=None):
-        return _struct.pack(self._get_format(numbytes, self._get_endian(endian)), number)
+        return struct.pack(self._get_format(numbytes, self._get_endian(endian)), number)
         
     def unpack_str(self, b, encoding=None, errors=None):
         return b.decode(self._get_encoding(encoding), errors=self._get_errors(errors))
