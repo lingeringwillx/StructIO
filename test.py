@@ -1,47 +1,74 @@
 import unittest
 from structio import *
 
-class PackUnpackFunctionsTest(unittest.TestCase):
+class PackunpackFunctionsTest(unittest.TestCase):
     def testbool(self):
-        self.assertEqual(True, unpack_bool(pack_bool(True))) #True
-        self.assertEqual(True, unpack_bool(b'\x02')) #True not one
-        self.assertEqual(False, unpack_bool(pack_bool(False))) #False
+        struct = Struct()
+        self.assertEqual(True, struct.unpack_bool(struct.pack_bool(True))) #True
+        self.assertEqual(True, struct.unpack_bool(b'\x02')) #True not one
+        self.assertEqual(False, struct.unpack_bool(struct.pack_bool(False))) #False
         
     def testbits(self):
-        self.assertEqual([0,1,0,1,0,1,0,1], unpack_bits(pack_bits([0,1,0,1,0,1,0,1])))
+        struct = Struct()
+        self.assertEqual([0,1,0,1,0,1,0,1], struct.unpack_bits(struct.pack_bits([0,1,0,1,0,1,0,1])))
         
     def testint(self):
-        self.assertEqual(10, unpack_int(pack_int(10, 2, 'little'), 'little')) #little endian unsigned
-        self.assertEqual(10, unpack_int(pack_int(10, 2, 'big'), 'big'))#big endian unsigned
-        self.assertEqual(-10, unpack_int(pack_int(-10, 2, 'little', signed=True), 'little', signed=True)) #little endian signed
-        self.assertEqual(-10, unpack_int(pack_int(-10, 2, 'big', signed=True), 'big', signed=True)) #big endian signed
+        struct = Struct('big')
+        self.assertEqual(10, struct.unpack_int(struct.pack_int(10, 2))) #default endian unsigned
+        self.assertEqual(10, struct.unpack_int(struct.pack_int(10, 2, 'little'), 'little')) #little endian unsigned
+        self.assertEqual(10, struct.unpack_int(struct.pack_int(10, 2, 'big'), 'big'))#big endian unsigned
+        
+        self.assertEqual(-10, struct.unpack_int(struct.pack_int(-10, 2, signed=True), signed=True)) #default endian signed
+        self.assertEqual(-10, struct.unpack_int(struct.pack_int(-10, 2, 'little', signed=True), 'little', signed=True)) #little endian signed
+        self.assertEqual(-10, struct.unpack_int(struct.pack_int(-10, 2, 'big', signed=True), 'big', signed=True)) #big endian signed
         
     def testfloat(self):
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 2, 'little'), 2, 'little'), 2)) #half little endian
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 2, 'big'), 2, 'big'), 2)) #half big endian
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 4, 'little'), 4,'little'), 2)) #single little endian
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 4, 'big'), 4, 'big'), 2)) #single big endian
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 8, 'little'), 8, 'little'), 2)) #double little endian
-        self.assertEqual(3.14, round(unpack_float(pack_float(3.14, 8, 'big'), 8, 'big'), 2)) #double big endian
+        struct = Struct('big')
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 2), 2), 2)) #half defualt endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 4), 4), 2)) #single default endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 8), 8), 2)) #double default endian
+        
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 2, 'little'), 2, 'little'), 2)) #half little endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 4, 'big'), 4, 'big'), 2)) #single big endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 8, 'little'), 8,'little'), 2)) #double little endian
+        
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 2, 'big'), 2, 'big'), 2)) #single big endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 4, 'little'), 4, 'little'), 2)) #double little endian
+        self.assertEqual(3.14, round(struct.unpack_float(struct.pack_float(3.14, 8, 'big'), 8, 'big'), 2)) #double big endian
         
     def teststr(self):
-        self.assertEqual('Unit Test', unpack_str(pack_str('Unit Test')))
+        struct = Struct()
+        self.assertEqual('Unit Test', struct.unpack_str(struct.pack_str('Unit Test')))
         
     def testcstr(self):
-        self.assertEqual('Unit Test', unpack_cstr(pack_cstr('Unit Test')))
-        self.assertEqual('Test', unpack_cstr(b'Unit\x00Test\x00', 5))
+        struct = Struct()
+        self.assertEqual('Unit Test', struct.unpack_cstr(struct.pack_cstr('Unit Test')))
+        self.assertEqual('Test', struct.unpack_cstr(b'Unit\x00Test\x00', 5))
         
     def testpstr(self):
-        self.assertEqual('Unit Test', unpack_pstr(pack_pstr('Unit Test', 2, 'little'), 2, 'little')) #little endian
-        self.assertEqual('Unit Test', unpack_pstr(pack_pstr('Unit Test', 2, 'big'), 2, 'big')) #big endian
+        struct = Struct()
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'little'), 2, 'little')) #little endian
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'big'), 2, 'big')) #big endian
         
-        self.assertEqual('Test', unpack_pstr(b'\x04Unit\x04Test', 1, 'little', 5))
+        self.assertEqual('Test', struct.unpack_pstr(b'\x04Unit\x04Test', 1, 'little', 5))
         
     def test7bint(self):
-        self.assertEqual(128, unpack_7bint(pack_7bint(128)))
-        self.assertEqual(128, unpack_7bint(b'\x00' + pack_7bint(128), start=1))
+        struct = Struct()
+        self.assertEqual(128, struct.unpack_7bint(struct.pack_7bint(128)))
+        self.assertEqual(128, struct.unpack_7bint(b'\x00' + struct.pack_7bint(128), start=1))
         
 class GenericStreamMethodsTest(unittest.TestCase):
+    def testgettersetter(self):
+        stream = StructIO(b'', 'little', 'utf-8', 'errors')
+        stream.endian = 'big'
+        self.assertEqual(stream.endian, stream._struct.endian)
+        
+        stream.encoding = 'ascii'
+        self.assertEqual(stream.encoding, stream._struct.encoding)
+        
+        stream.errors = 'strict'
+        self.assertEqual(stream.errors, stream._struct.errors)
+        
     def testlen(self):
         stream = StructIO(b'Unit Test', 'little')
         stream.seek(5)
@@ -74,6 +101,7 @@ class GenericStreamMethodsTest(unittest.TestCase):
     def testcopy(self):
         stream = StructIO(b'Unit Test', 'little')
         stream2 = stream.copy()
+        stream.seek(0)
         self.assertEqual(0, stream2.tell())
         self.assertEqual(stream.read(), stream2.read())
         
