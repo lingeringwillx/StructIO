@@ -121,7 +121,7 @@ class Struct:
         b += self.pack_int(number, 1, 'big')
         return b
         
-class StructIO(io.BytesIO, Struct):
+class StructIO(io.BytesIO):
     def __init__(self, b=b'', endian='little', encoding='utf-8', errors='ignore'):
         super().__init__(b)
         self._struct = Struct(endian, encoding, errors)
