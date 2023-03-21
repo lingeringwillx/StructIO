@@ -124,7 +124,7 @@ Converts bytes representing a 7 bit integer (Variable Length Quantity) into an i
 
 Converts *number* into a 7 bit integer.
 
-### Objects
+-----
 
 ### StructIO
 
