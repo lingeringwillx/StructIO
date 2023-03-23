@@ -136,7 +136,7 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Attributes
 
-**endian**: specifies the default endian that would be used by the object.
+**endian**: specifies the default endian that would be used by the object, can either be *'little'* or *'big'*.
 
 **encoding**: specifies the default encoding used by string methods.
 
