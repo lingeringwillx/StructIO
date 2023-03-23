@@ -52,7 +52,7 @@ Contains methods for unpacking and packing various data types.
 
 ### Attributes
 
-**endian**: specifies the default endian that would be used by the object.
+**endian**: specifies the default endian that would be used by the object, can either be *'little'* or *'big'*.
 
 **encoding**: specifies the default encoding used by string methods.
 
@@ -96,27 +96,27 @@ Converts bytes object *b* into a float. *numbytes* can be 2 for half precision, 
 
 Converts *number* into a bytes object. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian is specified with the *endian* argument.
 
-**unpack_str(b, encoding=None, errors=None)**
+**unpack_str(b)**
 
-Convert bytes object *b* into a string. The *encoding* and *errors* arguments are the same as the ones found in the [str.encode](https://docs.python.org/3/library/stdtypes.html#str.encode) and [bytes.decode](https://docs.python.org/3/library/stdtypes.html#bytes.decode) methods from the Python standard library.
+Convert bytes object *b* into a string.
 
 **pack_str(string)**
 
-Converts *string* into a bytes object. The *encoding* and *errors* arguments are the same as the ones found in the [str.encode](https://docs.python.org/3/library/stdtypes.html#str.encode) and [bytes.decode](https://docs.python.org/3/library/stdtypes.html#bytes.decode) methods from the Python standard library.
+Converts *string* into a bytes object.
 
-**unpack_cstr(b, start=0, encoding=None, errors=None)**
+**unpack_cstr(b, start=0)**
 
 Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*.
 
-**pack_cstr(string, encoding=None, errors=None)**
+**pack_cstr(string)**
 
 Converts *string* into a bytes object representing a null-terminated string.
 
-**unpack_pstr(b, numbytes, endian=None, start=0, encoding=None, errors=None)**
+**unpack_pstr(b, numbytes, endian=None, start=0)**
 
 Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*.
 
-**pack_pstr(string, numbytes, endian=None, encoding=None, errors=None)**
+**pack_pstr(string, numbytes, endian=None)**
 
 Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string is specified with the *endian* argument.
 
@@ -232,51 +232,51 @@ Converts *number* into a bytes object then writes it into the object. *numbytes*
 
 Same as *write_float* but appends the value to the object at the current position instead of overwriting existing bytes. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
-**read_str(length, encoding=None, errors=None)**
+**read_str(length)**
 
 Reads a string with length *length* from the object.
 
-**write_str(string, encoding=None, errors=None)**
+**write_str(string)**
 
 Writes *string* into the object.
 
-**append_str(string, encoding=None, errors=None)**
+**append_str(string)**
 
 Same as *write_str* but appends the value to the object at the current position instead of overwriting existing bytes.
 
-**overwrite_str(string, length, encoding=None, errors=None)**
+**overwrite_str(string, length)**
 
 Deletes *length* bytes starting from the current location, then writes *string* in it's place.
 
-**read_cstr(encoding=None, errors=None)**
+**read_cstr()**
 
 Reads a string from the object up to the null termination. Raises a *ValueError* if it fails to find a null termination.
 
-**write_cstr(string, encoding=None, errors=None)**
+**write_cstr(string)**
 
 Writes *string* into the object.
 
-**append_cstr(string, encoding=None, errors=None)**
+**append_cstr(string)**
 
 Same as *write_cstr* but appends the value to the object at the current position instead of overwriting existing bytes.
 
-**overwrite_cstr(string, encoding=None, errors=None)**
+**overwrite_cstr(string)**
 
 Deletes the null-terminated string existing at the current location, then writes *string* as a null-terminated string in it's place.  Raises a *ValueError* if it fails to find a null termination.
 
-**read_pstr(numbytes, endian=None, encoding=None, errors=None)**
+**read_pstr(numbytes, endian=None)**
 
 Reads a Pascal string from the object and returns it. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument.
 
-**write_pstr(string, numbytes, endian=None, encoding=None, errors=None)**
+**write_pstr(string, numbytes, endian=None)**
 
 Writes *string* to the object as a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument.
 
-**append_pstr(string, numbytes, endian=None, encoding=None, errors=None)**
+**append_pstr(string, numbytes, endian=None)**
 
 Same as *write_pstr* but appends the value to the object at the current position instead of overwriting existing bytes. The endian of the length of the string can be specified with the *endian* argument.
 
-**overwrite_pstr(string, numbytes, endian=None, encoding=None, errors=None)**
+**overwrite_pstr(string, numbytes, endian=None)**
 
 Deletes the existing Pascal string at the current position and writes *string* as a Pascal string in it's place. *numbytes* is used to specify how many bytes are used for the integer holding the string's length. The endian of the length of the string can be specified with the *endian* argument.
 
