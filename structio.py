@@ -51,7 +51,7 @@ class Struct:
         if endian not in _endians:
             raise ValueError("endian '{}' is not recognized".format(endian))
             
-        return _endians[self._get_endian(endian)] + _float_formats[numbytes]
+        return _endians[endian] + _float_formats[numbytes]
         
     def unpack_float(self, b, numbytes, endian=None):
         return struct.unpack(self._get_format(numbytes, self._get_endian(endian)), b)[0]
