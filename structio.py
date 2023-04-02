@@ -149,15 +149,14 @@ class StructIO(io.BytesIO):
         return self.getvalue() == other.getvalue()
         
     def is_eof(self):
-        check = self.read(1) == b''
-        if check:
+        if self.read(1) == b'':
             return True
         else:
             self.seek(-1, 1)
             return False
             
     def copy(self):
-        return StructIO(self.getvalue(), self._struct.endian)
+        return StructIO(self.getvalue(), self._struct.endian, self._struct.encoding, self._struct.errors)
         
     def read_all(self):
         self.seek(0)
