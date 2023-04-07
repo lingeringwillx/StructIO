@@ -1,7 +1,7 @@
 import unittest
 from structio import *
 
-class PackunpackFunctionsTest(unittest.TestCase):
+class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
         self.assertEqual(True, struct.unpack_bool(struct.pack_bool(True))) #True
@@ -158,7 +158,7 @@ class GenericStreamMethodsTest(unittest.TestCase):
         self.assertEqual(15, stream.index(b'Test', 2)) #second
         self.assertRaises(ValueError, lambda: stream.index(b'Test', 3))
         
-class ReadWriteMethodsTest(unittest.TestCase):
+class WriteReadMethodsTest(unittest.TestCase):
     def testbool(self):
         stream = StructIO(endian='little')
         stream.write_bool(True)

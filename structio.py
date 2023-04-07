@@ -253,7 +253,7 @@ class StructIO(io.BytesIO):
     def append_cstr(self, string):
         return self.append(self._struct.pack_cstr(string))
         
-    def overwrite_cstr(self, string, encoding=None, errors=None):
+    def overwrite_cstr(self, string):
         end = self.find(b'\x00')
         
         if end == -1:
