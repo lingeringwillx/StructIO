@@ -82,7 +82,8 @@ class Struct:
         return self.unpack_str(b[int_end:(int_end + length)])
         
     def pack_pstr(self, string, numbytes, endian=None):
-        return self.pack_int(len(string), numbytes, endian) + self.pack_str(string)
+        b = self.pack_str(string)
+        return self.pack_int(len(b), numbytes, endian) + b
         
     def unpack_7bint(self, b, start=0):
         number = 0
@@ -266,15 +267,15 @@ class StructIO(io.BytesIO):
         return self.read_str(self.read_int(numbytes, endian))
         
     def write_pstr(self, string, numbytes, endian=None):
-        return self.write_int(len(string), numbytes, endian) + self.write_str(string)
+        return self.write(self._struct.pack_pstr(string, numbytes, endian))
         
     def append_pstr(self, string, numbytes, endian=None):
         return self.append(self._struct.pack_pstr(string, numbytes, endian))
         
     def overwrite_pstr(self, string, numbytes, endian=None):
         start = self.tell()
-        length = self.read_int(numbytes, endian)
-        return self.overwrite(start, start + numbytes + length, self._struct.pack_pstr(string, numbytes, endian))
+        length = numbytes + self.read_int(numbytes, endian)
+        return self.overwrite(start, start  + length, self._struct.pack_pstr(string, numbytes, endian))
         
     def read_7bint(self):
         number = 0
