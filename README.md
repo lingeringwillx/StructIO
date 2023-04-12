@@ -184,6 +184,18 @@ Appends bytes object *b* to the object at the current location.
 
 Replaces the bytes between positions *start* and *end* with *b*.
 
+**delete(length)**
+
+Deletes *length* bytes from the object starting from *current position - length* to *current position*.
+
+**find(bytes_sequence, n=1)**
+
+Searches the object for *bytes_sequence*. Returns the location in which the *nth* occurrence of *bytes_sequence* can be found, returns -1 if it's not found. Starts searching from the current position in the buffer.
+
+**index(bytes_sequence, n=1)**
+
+Same as find but raises a *ValueError* if it fails to find *bytes_sequence*.
+
 **read_bool()**
 
 Read one byte from the object and converts it into a boolean.
@@ -295,15 +307,3 @@ Converts *number* into a 7 bit integer and appends it to the object.
 **overwrite_7bint(number)**
 
 Overwrites the 7 bit integer at the current position with *number*.
-
-**delete(length)**
-
-Deletes *length* bytes from the object starting from *current position - length* to *current position*.
-
-**find(bytes_sequence, n=1)**
-
-Searches the object for *bytes_sequence*. Returns the location in which the *nth* occurrence of *bytes_sequence* can be found, returns -1 if it's not found. Starts searching from the current position in the buffer.
-
-**index(bytes_sequence, n=1)**
-
-Same as find but raises a *ValueError* if it fails to find *bytes_sequence*.

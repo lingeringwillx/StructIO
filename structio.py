@@ -65,25 +65,38 @@ class Struct:
     def pack_str(self, string):
         return string.encode(self.encoding, errors=self.errors)
         
-    def unpack_cstr(self, b, start=0):
+    def _get_cstr_end(self, b, start=0):
         end = b.find(b'\x00', start)
         
         if end == -1:
             raise ValueError('null termination not found')
             
-        return self.unpack_str(b[start:end])
+        return end + 1
+        
+    def unpack_cstr(self, b, start=0):
+        self._end = end = self._get_cstr_end(b, start)
+        return self.unpack_str(b[start:(end - 1)])
         
     def pack_cstr(self, string):
         return self.pack_str(string) + b'\x00'
         
+    def _get_pstr_end(self, b, numbytes, endian=None, start=0):
+        return start + numbytes + self.unpack_int(b[start:(start + numbytes)], endian)
+        
     def unpack_pstr(self, b, numbytes, endian=None, start=0):
-        int_end = start + numbytes
-        length = self.unpack_int(b[start:int_end], endian)
-        return self.unpack_str(b[int_end:(int_end + length)])
+        self._end = end = self._get_pstr_end(b, numbytes, endian, start)
+        return self.unpack_str(b[(start + numbytes):end])
         
     def pack_pstr(self, string, numbytes, endian=None):
         b = self.pack_str(string)
         return self.pack_int(len(b), numbytes, endian) + b
+        
+    def _get_7bint_end(self, b, start=0):
+        i = 0
+        while b[start + i] & 0b10000000 != 0:
+            i += 1
+            
+        return start + i + 1
         
     def unpack_7bint(self, b, start=0):
         number = 0
@@ -97,7 +110,7 @@ class Struct:
             byte = b[start + i]
             
         number |= byte << (7 * i)
-        
+        self._end = start + i + 1
         return number
         
     def pack_7bint(self, number):
@@ -188,6 +201,38 @@ class StructIO(io.BytesIO):
         self.seek(start + length)
         return length
         
+    def delete(self, length):
+        current_position = self.tell()
+        
+        if current_position - length < 0:
+            length = current_position
+            
+        start = current_position - length
+        self.overwrite(start, current_position, b'')
+        
+        return length
+        
+    def find(self, bytes_sequence, n=1):
+        start = self.tell()
+        content = self.getvalue()
+        location = content.find(bytes_sequence, start)
+        
+        for i in range(1, n):
+            location = content.find(bytes_sequence, location + 1)
+            
+            if location == -1:
+                break
+                
+        return location
+        
+    def index(self, bytes_sequence, n=1):
+        end = self.find(bytes_sequence, n)
+        
+        if end == -1:
+            raise ValueError('{} not found'.format(bytes_sequence))
+            
+        return end
+        
     def read_bool(self):
         return self._struct.unpack_bool(self.read(1))
         
@@ -238,15 +283,10 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, start + length, self._struct.pack_str(string))
         
     def read_cstr(self):
-        end = self.find(b'\x00')
-        
-        if end == -1:
-            raise ValueError('null termination not found')
-            
         start = self.tell()
-        string = self._struct.unpack_str(self.read(end - start))
-        self.seek(1, 1)
-        return string
+        value = self._struct.unpack_cstr(self.getvalue(), start=start)
+        self.seek(self._struct._end)
+        return value
         
     def write_cstr(self, string):
         return self.write(self._struct.pack_cstr(string))
@@ -255,16 +295,15 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_cstr(string))
         
     def overwrite_cstr(self, string):
-        end = self.find(b'\x00')
-        
-        if end == -1:
-            raise ValueError('null termination not found')
-            
         start = self.tell()
-        return self.overwrite(start, end + 1, self._struct.pack_cstr(string))
+        end = self._struct._get_cstr_end(self.getvalue(), start=start)
+        return self.overwrite(start, end, self._struct.pack_cstr(string))
         
     def read_pstr(self, numbytes, endian=None):
-        return self.read_str(self.read_int(numbytes, endian))
+        start = self.tell()
+        value = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=start)
+        self.seek(self._struct._end)
+        return value
         
     def write_pstr(self, string, numbytes, endian=None):
         return self.write(self._struct.pack_pstr(string, numbytes, endian))
@@ -274,23 +313,14 @@ class StructIO(io.BytesIO):
         
     def overwrite_pstr(self, string, numbytes, endian=None):
         start = self.tell()
-        length = numbytes + self.read_int(numbytes, endian)
-        return self.overwrite(start, start  + length, self._struct.pack_pstr(string, numbytes, endian))
+        end = self._struct._get_pstr_end(self.getvalue(), numbytes, endian, start=start)
+        return self.overwrite(start, end, self._struct.pack_pstr(string, numbytes, endian))
         
     def read_7bint(self):
-        number = 0
-        i = 0
-        
-        byte = self.read_int(1)
-        while byte & 0b10000000 != 0:
-            number |= (byte & 0b01111111) << (7 * i)
-            i += 1
-            
-            byte = self.read_int(1)
-            
-        number |= byte << (7 * i)
-        
-        return number
+        start = self.tell()
+        value = self._struct.unpack_7bint(self.getvalue(), start=start)
+        self.seek(self._struct._end)
+        return value
         
     def write_7bint(self, number):
         return self.write(self._struct.pack_7bint(number))
@@ -300,42 +330,5 @@ class StructIO(io.BytesIO):
         
     def overwrite_7bint(self, number):
         start = self.tell()
-        
-        while self.read_int(1) & 0b10000000 != 0:
-            pass
-            
-        end = self.tell()
-        
+        end = self._struct._get_7bint_end(self.getvalue(), start=start)
         return self.overwrite(start, end, self._struct.pack_7bint(number))
-        
-    def delete(self, length):
-        current_position = self.tell()
-        
-        if current_position - length < 0:
-            length = current_position
-            
-        start = current_position - length
-        self.overwrite(start, current_position, b'')
-        
-        return length
-        
-    def find(self, bytes_sequence, n=1):
-        start = self.tell()
-        content = self.getvalue()
-        location = content.find(bytes_sequence, start)
-        
-        for i in range(1, n):
-            location = content.find(bytes_sequence, location + 1)
-            
-            if location == -1:
-                break
-                
-        return location
-        
-    def index(self, bytes_sequence, n=1):
-        end = self.find(bytes_sequence, n)
-        
-        if end == -1:
-            raise ValueError('{} not found'.format(bytes_sequence))
-            
-        return end
