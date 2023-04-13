@@ -73,20 +73,30 @@ class Struct:
             
         return end + 1
         
-    def unpack_cstr(self, b, start=0):
-        self._end = end = self._get_cstr_end(b, start)
-        return self.unpack_str(b[start:(end - 1)])
+    def unpack_cstr(self, b, start=0, ret_end=False):
+        end = self._get_cstr_end(b, start)
+        string = self.unpack_str(b[start:(end - 1)])
         
+        if ret_end:
+            return string, end
+        else:
+            return string
+            
     def pack_cstr(self, string):
         return self.pack_str(string) + b'\x00'
         
     def _get_pstr_end(self, b, numbytes, endian=None, start=0):
         return start + numbytes + self.unpack_int(b[start:(start + numbytes)], endian)
         
-    def unpack_pstr(self, b, numbytes, endian=None, start=0):
-        self._end = end = self._get_pstr_end(b, numbytes, endian, start)
-        return self.unpack_str(b[(start + numbytes):end])
+    def unpack_pstr(self, b, numbytes, endian=None, start=0, ret_end=False):
+        end = self._get_pstr_end(b, numbytes, endian, start)
+        string = self.unpack_str(b[(start + numbytes):end])
         
+        if ret_end:
+            return string, end
+        else:
+            return string
+            
     def pack_pstr(self, string, numbytes, endian=None):
         b = self.pack_str(string)
         return self.pack_int(len(b), numbytes, endian) + b
@@ -98,7 +108,7 @@ class Struct:
             
         return start + i + 1
         
-    def unpack_7bint(self, b, start=0):
+    def unpack_7bint(self, b, start=0, ret_end=False):
         number = 0
         i = 0
         
@@ -110,9 +120,13 @@ class Struct:
             byte = b[start + i]
             
         number |= byte << (7 * i)
-        self._end = start + i + 1
-        return number
+        end = start + i + 1
         
+        if ret_end:
+            return number, end
+        else:
+            return number
+            
     def pack_7bint(self, number):
         b = bytearray()
         
@@ -124,9 +138,9 @@ class Struct:
         return b
         
 class StructIO(io.BytesIO):
-    def __init__(self, b=b'', endian='little', encoding='utf-8', errors='ignore'):
+    def __init__(self, b=b'', endian='little', encoding='utf-8', errors='ignore', struct=Struct):
         super().__init__(b)
-        self._struct = Struct(endian, encoding, errors)
+        self._struct = struct(endian, encoding, errors)
         
     @property
     def endian(self):
@@ -283,9 +297,8 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, start + length, self._struct.pack_str(string))
         
     def read_cstr(self):
-        start = self.tell()
-        value = self._struct.unpack_cstr(self.getvalue(), start=start)
-        self.seek(self._struct._end)
+        value, end = self._struct.unpack_cstr(self.getvalue(), start=self.tell(), ret_end=True)
+        self.seek(end)
         return value
         
     def write_cstr(self, string):
@@ -300,9 +313,8 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, end, self._struct.pack_cstr(string))
         
     def read_pstr(self, numbytes, endian=None):
-        start = self.tell()
-        value = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=start)
-        self.seek(self._struct._end)
+        value, end = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=self.tell(), ret_end=True)
+        self.seek(end)
         return value
         
     def write_pstr(self, string, numbytes, endian=None):
@@ -317,9 +329,8 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, end, self._struct.pack_pstr(string, numbytes, endian))
         
     def read_7bint(self):
-        start = self.tell()
-        value = self._struct.unpack_7bint(self.getvalue(), start=start)
-        self.seek(self._struct._end)
+        value, end = self._struct.unpack_7bint(self.getvalue(), start=self.tell(), ret_end=True)
+        self.seek(end)
         return value
         
     def write_7bint(self, number):

@@ -1,6 +1,45 @@
 import unittest
 from structio import *
 
+class ExtendedStruct(Struct):
+    def _get_7bstr_end(self, b, start=0):
+        length, int_end = self.unpack_7bint(b, start=0, ret_end=True)
+        return int_end + length
+        
+    def unpack_7bstr(self, b, start=0, ret_end=False):
+        length, int_end = self.unpack_7bint(b, start, ret_end=True)
+        str_end = int_end + length
+        string = self.unpack_str(b[int_end:str_end])
+        
+        if ret_end:
+            return string, str_end
+        else:
+            return string
+            
+    def pack_7bstr(self, string):
+        b = self.pack_str(string)
+        return self.pack_7bint(len(b)) + b
+        
+class ExtendedStructIO(StructIO):
+    def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
+        super().__init__(b, endian, struct=struct)
+        
+    def read_7bstr(self):
+        string, end = self._struct.unpack_7bstr(self.getvalue(), start=self.tell(), ret_end=True)
+        self.seek(end)
+        return string
+        
+    def write_7bstr(self, string):
+        return self.write(self._struct.pack_7bstr(string))
+        
+    def append_7bstr(self, string):
+        return self.append(self._struct.pack_7bstr(string))
+        
+    def overwrite_7bstr(self, string):
+        start = self.tell()
+        end = self._struct._get_7bstr_end(self.getvalue(), start)
+        return self.overwrite(start, end, self._struct.pack_7bstr(string))
+        
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
@@ -286,7 +325,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream = StructIO(endian='little')
         stream.write_7bint(128)
         stream.seek(0)
-        self.assertEqual(128, stream.read_7bint()) #default endian
+        self.assertEqual(128, stream.read_7bint())
         self.assertEqual(2, stream.tell())
         
 class AppendOverwriteMethodsTest(unittest.TestCase):
@@ -510,5 +549,40 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         stream.overwrite_7bint(127)
         stream.seek(0)
         self.assertEqual(127, stream.read_7bint())
+        
+class InheritanceTest(unittest.TestCase):
+    def testattraccess(self):
+        struct = ExtendedStruct()
+        struct.endian
+        
+        stream = ExtendedStructIO()
+        stream.encoding
+        
+    def testpackunpack7bstr(self):
+        struct = ExtendedStruct()
+        self.assertEqual('Unit Test', struct.unpack_7bstr(struct.pack_7bstr('Unit Test')))
+        
+    def testreadwrite7bstr(self):
+        stream = ExtendedStructIO()
+        stream.write_7bstr('Unit Test')
+        stream.seek(0)
+        self.assertEqual('Unit Test', stream.read_7bstr())
+        self.assertEqual(10, stream.tell())
+        
+    def testappend7bstr(self):
+        stream = ExtendedStructIO()
+        stream.write_7bstr('Test')
+        stream.seek(0)
+        stream.append_7bstr('Unit')
+        stream.seek(0)
+        self.assertEqual('Unit', stream.read_7bstr())
+        
+    def testoverwrite7bstr(self):
+        stream = ExtendedStructIO()
+        stream.write_7bstr('Unit Test')
+        stream.seek(0)
+        stream.overwrite_7bstr('Working')
+        stream.seek(0)
+        self.assertEqual('Working', stream.read_7bstr())
         
 unittest.main()

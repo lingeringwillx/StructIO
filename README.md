@@ -104,25 +104,25 @@ Convert bytes object *b* into a string.
 
 Converts *string* into a bytes object.
 
-**unpack_cstr(b, start=0)**
+**unpack_cstr(b, start=0, ret_end=False)**
 
-Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*.
+Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
 
 **pack_cstr(string)**
 
 Converts *string* into a bytes object representing a null-terminated string.
 
-**unpack_pstr(b, numbytes, endian=None, start=0)**
+**unpack_pstr(b, numbytes, endian=None, start=0, ret_end=False)**
 
-Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*.
+Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
 
 **pack_pstr(string, numbytes, endian=None)**
 
 Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string is specified with the *endian* argument.
 
-**unpack_7bint(b, start=0)**
+**unpack_7bint(b, start=0, ret_end=False)**
 
-Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*.
+Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
 
 **pack_7bint(number)**
 
@@ -144,9 +144,9 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Methods
 
-**StructIO(b=b'', endian='little', encoding='utf-8', errors='ignore')**
+**StructIO(b=b'', endian='little', encoding='utf-8', errors='ignore', struct=Struct)**
 
-Take bytes object *b* and returns a *StructIO* instance containing *b*. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*.
+Take bytes object *b* and returns a *StructIO* instance containing *b*. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*. *struct* is the class used for unpacking and packing, should either be [Struct](#Struct) or a class implementing the same methods..
 
 **\_\_len\_\_()**
 
@@ -307,3 +307,50 @@ Converts *number* into a 7 bit integer and appends it to the object.
 **overwrite_7bint(number)**
 
 Overwrites the 7 bit integer at the current position with *number*.
+
+-----
+
+### Extending StructIO
+
+You can add your own types by inheriting from the two base objects:
+
+```python
+class ExtendedStruct(Struct):
+    def _get_7bstr_end(self, b, start=0):
+        length, int_end = self.unpack_7bint(b, start=0, ret_end=True)
+        return int_end + length
+        
+    def unpack_7bstr(self, b, start=0, ret_end=False):
+        length, int_end = self.unpack_7bint(b, start, ret_end=True)
+        str_end = int_end + length
+        string = self.unpack_str(b[int_end:str_end])
+        
+        if ret_end:
+            return string, str_end
+        else:
+            return string
+            
+    def pack_7bstr(self, string):
+        b = self.pack_str(string)
+        return self.pack_7bint(len(b)) + b
+        
+class ExtendedStructIO(StructIO):
+    def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
+        super().__init__(b, endian, struct=struct)
+        
+    def read_7bstr(self):
+        string, end = self._struct.unpack_7bstr(self.getvalue(), start=self.tell(), ret_end=True)
+        self.seek(end)
+        return string
+        
+    def write_7bstr(self, string):
+        return self.write(self._struct.pack_7bstr(string))
+        
+    def append_7bstr(self, string):
+        return self.append(self._struct.pack_7bstr(string))
+        
+    def overwrite_7bstr(self, string):
+        start = self.tell()
+        end = self._struct._get_7bstr_end(self.getvalue(), start)
+        return self.overwrite(start, end, self._struct.pack_7bstr(string))
+```
