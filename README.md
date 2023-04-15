@@ -104,25 +104,25 @@ Convert bytes object *b* into a string.
 
 Converts *string* into a bytes object.
 
-**unpack_cstr(b, start=0, ret_end=False)**
+**unpack_cstr(b, start=0, ret_len=False)**
 
-Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
+Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
 
 **pack_cstr(string)**
 
 Converts *string* into a bytes object representing a null-terminated string.
 
-**unpack_pstr(b, numbytes, endian=None, start=0, ret_end=False)**
+**unpack_pstr(b, numbytes, endian=None, start=0, ret_len=False)**
 
-Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
+Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
 
 **pack_pstr(string, numbytes, endian=None)**
 
 Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string is specified with the *endian* argument.
 
-**unpack_7bint(b, start=0, ret_end=False)**
+**unpack_7bint(b, start=0, ret_len=False)**
 
-Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_end* is True, then a tuple is returned containing both the value and the end position of the type.
+Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
 
 **pack_7bint(number)**
 
