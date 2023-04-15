@@ -65,35 +65,35 @@ class Struct:
     def pack_str(self, string):
         return string.encode(self.encoding, errors=self.errors)
         
-    def _get_cstr_end(self, b, start=0):
+    def _get_cstr_len(self, b, start=0):
         end = b.find(b'\x00', start)
         
         if end == -1:
             raise ValueError('null termination not found')
             
-        return end + 1
+        return end - start + 1
         
-    def unpack_cstr(self, b, start=0, ret_end=False):
-        end = self._get_cstr_end(b, start)
-        string = self.unpack_str(b[start:(end - 1)])
+    def unpack_cstr(self, b, start=0, ret_len=False):
+        length = self._get_cstr_len(b, start)
+        string = self.unpack_str(b[start:(start + length - 1)])
         
-        if ret_end:
-            return string, end
+        if ret_len:
+            return string, length
         else:
             return string
             
     def pack_cstr(self, string):
         return self.pack_str(string) + b'\x00'
         
-    def _get_pstr_end(self, b, numbytes, endian=None, start=0):
-        return start + numbytes + self.unpack_int(b[start:(start + numbytes)], endian)
+    def _get_pstr_len(self, b, numbytes, endian=None, start=0):
+        return numbytes + self.unpack_int(b[start:(start + numbytes)], endian)
         
-    def unpack_pstr(self, b, numbytes, endian=None, start=0, ret_end=False):
-        end = self._get_pstr_end(b, numbytes, endian, start)
-        string = self.unpack_str(b[(start + numbytes):end])
+    def unpack_pstr(self, b, numbytes, endian=None, start=0, ret_len=False):
+        length = self._get_pstr_len(b, numbytes, endian, start)
+        string = self.unpack_str(b[(start + numbytes):(start + length)])
         
-        if ret_end:
-            return string, end
+        if ret_len:
+            return string, length
         else:
             return string
             
@@ -101,29 +101,29 @@ class Struct:
         b = self.pack_str(string)
         return self.pack_int(len(b), numbytes, endian) + b
         
-    def _get_7bint_end(self, b, start=0):
+    def _get_7bint_len(self, b, start=0):
         i = 0
-        while b[start + i] & 0b10000000 != 0:
+        while b[start + i] > 127:
             i += 1
             
-        return start + i + 1
+        return i + 1
         
-    def unpack_7bint(self, b, start=0, ret_end=False):
+    def unpack_7bint(self, b, start=0, ret_len=False):
         number = 0
         i = 0
         
         byte = b[start + i]
-        while byte & 0b10000000 != 0:
+        while byte > 127:
             number |= (byte & 0b01111111) << (7 * i)
             i += 1
             
             byte = b[start + i]
             
         number |= byte << (7 * i)
-        end = start + i + 1
+        length = i + 1
         
-        if ret_end:
-            return number, end
+        if ret_len:
+            return number, length
         else:
             return number
             
@@ -297,8 +297,8 @@ class StructIO(io.BytesIO):
         return self.overwrite(start, start + length, self._struct.pack_str(string))
         
     def read_cstr(self):
-        value, end = self._struct.unpack_cstr(self.getvalue(), start=self.tell(), ret_end=True)
-        self.seek(end)
+        value, length = self._struct.unpack_cstr(self.getvalue(), start=self.tell(), ret_len=True)
+        self.seek(length, 1)
         return value
         
     def write_cstr(self, string):
@@ -309,12 +309,12 @@ class StructIO(io.BytesIO):
         
     def overwrite_cstr(self, string):
         start = self.tell()
-        end = self._struct._get_cstr_end(self.getvalue(), start=start)
-        return self.overwrite(start, end, self._struct.pack_cstr(string))
+        length = self._struct._get_cstr_len(self.getvalue(), start=start)
+        return self.overwrite(start, start + length, self._struct.pack_cstr(string))
         
     def read_pstr(self, numbytes, endian=None):
-        value, end = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=self.tell(), ret_end=True)
-        self.seek(end)
+        value, length = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=self.tell(), ret_len=True)
+        self.seek(length, 1)
         return value
         
     def write_pstr(self, string, numbytes, endian=None):
@@ -325,12 +325,12 @@ class StructIO(io.BytesIO):
         
     def overwrite_pstr(self, string, numbytes, endian=None):
         start = self.tell()
-        end = self._struct._get_pstr_end(self.getvalue(), numbytes, endian, start=start)
-        return self.overwrite(start, end, self._struct.pack_pstr(string, numbytes, endian))
+        length = self._struct._get_pstr_len(self.getvalue(), numbytes, endian, start=start)
+        return self.overwrite(start, start + length, self._struct.pack_pstr(string, numbytes, endian))
         
     def read_7bint(self):
-        value, end = self._struct.unpack_7bint(self.getvalue(), start=self.tell(), ret_end=True)
-        self.seek(end)
+        value, length = self._struct.unpack_7bint(self.getvalue(), start=self.tell(), ret_len=True)
+        self.seek(length, 1)
         return value
         
     def write_7bint(self, number):
@@ -341,5 +341,5 @@ class StructIO(io.BytesIO):
         
     def overwrite_7bint(self, number):
         start = self.tell()
-        end = self._struct._get_7bint_end(self.getvalue(), start=start)
-        return self.overwrite(start, end, self._struct.pack_7bint(number))
+        length = self._struct._get_7bint_len(self.getvalue(), start=start)
+        return self.overwrite(start, start + length, self._struct.pack_7bint(number))
