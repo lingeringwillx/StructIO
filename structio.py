@@ -59,6 +59,9 @@ class Struct:
     def pack_float(self, number, numbytes, endian=None):
         return struct.pack(self._get_format(numbytes, self._get_endian(endian)), number)
         
+    def _get_str_len(self, b, length, start=0):
+        return length
+        
     def unpack_str(self, b):
         return b.decode(self.encoding, errors=self.errors)
         
@@ -247,6 +250,16 @@ class StructIO(io.BytesIO):
             
         return end
         
+    def _read(self, unpack_func, unpack_args):
+        value, length = unpack_func(self.getvalue(), *unpack_args, start=self.tell(), ret_len=True)
+        self.seek(length, 1)
+        return value
+        
+    def _overwrite(self, len_func, len_args, pack_func, pack_args):
+        start = self.tell()
+        length = len_func(self.getvalue(), *len_args, start=start)
+        return self.overwrite(start, start + length, pack_func(*pack_args))
+        
     def read_bool(self):
         return self._struct.unpack_bool(self.read(1))
         
@@ -293,13 +306,10 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_str(string))
         
     def overwrite_str(self, string, length):
-        start = self.tell()
-        return self.overwrite(start, start + length, self._struct.pack_str(string))
+        return self._overwrite(self._struct._get_str_len, (length,), self._struct.pack_str, (string,))
         
     def read_cstr(self):
-        value, length = self._struct.unpack_cstr(self.getvalue(), start=self.tell(), ret_len=True)
-        self.seek(length, 1)
-        return value
+        return self._read(self._struct.unpack_cstr, ())
         
     def write_cstr(self, string):
         return self.write(self._struct.pack_cstr(string))
@@ -308,14 +318,10 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_cstr(string))
         
     def overwrite_cstr(self, string):
-        start = self.tell()
-        length = self._struct._get_cstr_len(self.getvalue(), start=start)
-        return self.overwrite(start, start + length, self._struct.pack_cstr(string))
+        return self._overwrite(self._struct._get_cstr_len, (), self._struct.pack_cstr, (string,))
         
     def read_pstr(self, numbytes, endian=None):
-        value, length = self._struct.unpack_pstr(self.getvalue(), numbytes, endian, start=self.tell(), ret_len=True)
-        self.seek(length, 1)
-        return value
+        return self._read(self._struct.unpack_pstr, (numbytes, endian))
         
     def write_pstr(self, string, numbytes, endian=None):
         return self.write(self._struct.pack_pstr(string, numbytes, endian))
@@ -324,14 +330,10 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_pstr(string, numbytes, endian))
         
     def overwrite_pstr(self, string, numbytes, endian=None):
-        start = self.tell()
-        length = self._struct._get_pstr_len(self.getvalue(), numbytes, endian, start=start)
-        return self.overwrite(start, start + length, self._struct.pack_pstr(string, numbytes, endian))
+        return self._overwrite(self._struct._get_pstr_len, (numbytes, endian), self._struct.pack_pstr, (string, numbytes, endian))
         
     def read_7bint(self):
-        value, length = self._struct.unpack_7bint(self.getvalue(), start=self.tell(), ret_len=True)
-        self.seek(length, 1)
-        return value
+        return self._read(self._struct.unpack_7bint, ())
         
     def write_7bint(self, number):
         return self.write(self._struct.pack_7bint(number))
@@ -340,6 +342,4 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_7bint(number))
         
     def overwrite_7bint(self, number):
-        start = self.tell()
-        length = self._struct._get_7bint_len(self.getvalue(), start=start)
-        return self.overwrite(start, start + length, self._struct.pack_7bint(number))
+        return self._overwrite(self._struct._get_7bint_len, (), self._struct.pack_7bint, (number,))

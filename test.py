@@ -24,9 +24,7 @@ class ExtendedStructIO(StructIO):
         super().__init__(b, endian, struct=struct)
         
     def read_7bstr(self):
-        string, length = self._struct.unpack_7bstr(self.getvalue(), start=self.tell(), ret_len=True)
-        self.seek(length, 1)
-        return string
+        return self._read(self._struct.unpack_7bstr, ())
         
     def write_7bstr(self, string):
         return self.write(self._struct.pack_7bstr(string))
@@ -35,9 +33,7 @@ class ExtendedStructIO(StructIO):
         return self.append(self._struct.pack_7bstr(string))
         
     def overwrite_7bstr(self, string):
-        start = self.tell()
-        length = self._struct._get_7bstr_len(self.getvalue(), start)
-        return self.overwrite(start, start + length, self._struct.pack_7bstr(string))
+        return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
         
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
