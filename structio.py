@@ -17,11 +17,15 @@ class Struct:
             return endian
             
     def unpack_bool(self, b):
-        if len(b) == 1:
-            return b != b'\x00'
-        else:
-            raise ValueError('expected bytes object of length 1')
+        if isinstance(b, int):
+            return b != 0
             
+        else:
+            if len(b) == 1:
+                return b != b'\x00'
+            else:
+                raise ValueError('expected bytes object of length 1')
+                
     def pack_bool(self, boolean):
         if boolean:
             return b'\x01'
@@ -29,12 +33,15 @@ class Struct:
             return b'\x00'
             
     def unpack_bits(self, b):
-        if len(b) == 1:
-            number = self.unpack_int(b) 
-            return [number >> i & 1 for i in range(8)]
+        if isinstance(b, int):
+            number = b
+        elif len(b) == 1:
+            number = self.unpack_int(b)
         else:
             raise ValueError('expected bytes object of length 1')
             
+        return [number >> i & 1 for i in range(8)]
+        
     def pack_bits(self, bits):
         return self.pack_int(sum(bits[i] << i for i in range(8)), 1)
         

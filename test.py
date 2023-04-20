@@ -38,13 +38,17 @@ class ExtendedStructIO(StructIO):
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
-        self.assertEqual(True, struct.unpack_bool(struct.pack_bool(True))) #True
-        self.assertEqual(True, struct.unpack_bool(b'\x02')) #True not one
-        self.assertEqual(False, struct.unpack_bool(struct.pack_bool(False))) #False
+        self.assertEqual(True, struct.unpack_bool(struct.pack_bool(True))) #True byte
+        self.assertEqual(True, struct.unpack_bool(b'\x02')) #True not one byte
+        self.assertEqual(False, struct.unpack_bool(struct.pack_bool(False))) #False byte
+        self.assertEqual(True, struct.unpack_bool(1)) #True int
+        self.assertEqual(True, struct.unpack_bool(2)) #True not one int
+        self.assertEqual(False, struct.unpack_bool(0)) #False int
         
     def testbits(self):
         struct = Struct()
-        self.assertEqual([0,1,0,1,0,1,0,1], struct.unpack_bits(struct.pack_bits([0,1,0,1,0,1,0,1])))
+        self.assertEqual([0,1,0,1,0,1,0,1], struct.unpack_bits(struct.pack_bits([0,1,0,1,0,1,0,1]))) #byte
+        self.assertEqual([0,1,0,1,0,1,0,1], struct.unpack_bits(170)) #int
         
     def testint(self):
         struct = Struct('big')
