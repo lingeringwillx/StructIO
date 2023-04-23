@@ -104,25 +104,25 @@ Convert bytes object *b* into a string.
 
 Converts *string* into a bytes object.
 
-**unpack_cstr(b, start=0, ret_len=False)**
+**unpack_cstr(b, start=0)**
 
-Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
+Convert bytes object *b* into a string up to the null termination. If *start* is specified, then the bytes object will be converted starting from position *start*. Returns a tuple containing both the value and the length of the type.
 
 **pack_cstr(string)**
 
 Converts *string* into a bytes object representing a null-terminated string.
 
-**unpack_pstr(b, numbytes, endian=None, start=0, ret_len=False)**
+**unpack_pstr(b, numbytes, endian=None, start=0)**
 
-Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
+Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. Returns a tuple containing both the value and the length of the type.
 
 **pack_pstr(string, numbytes, endian=None)**
 
 Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string is specified with the *endian* argument.
 
-**unpack_7bint(b, start=0, ret_len=False)**
+**unpack_7bint(b, start=0)**
 
-Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*. If *ret_len* is True, then a tuple is returned containing both the value and the length of the type.
+Converts bytes representing a 7 bit integer (Variable Length Quantity) into an integer.  If *start* is specified, then the bytes object will be converted starting from position *start*. Returns a tuple containing both the value and the length of the type.
 
 **pack_7bint(number)**
 
@@ -319,18 +319,14 @@ from structio import Struct, StructIO
 
 class ExtendedStruct(Struct):
     def _get_7bstr_len(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start, ret_len=True)
+        str_len, int_len = self.unpack_7bint(b, start)
         return int_len + str_len
         
-    def unpack_7bstr(self, b, start=0, ret_len=False):
-        str_len, int_len = self.unpack_7bint(b, start, ret_len=True)
+    def unpack_7bstr(self, b, start=0):
+        str_len, int_len = self.unpack_7bint(b, start)
         string = self.unpack_str(b[(start + int_len):(start + int_len + str_len)])
+        return string, int_len + str_len
         
-        if ret_len:
-            return string, int_len + str_len
-        else:
-            return string
-            
     def pack_7bstr(self, string):
         b = self.pack_str(string)
         return self.pack_7bint(len(b)) + b

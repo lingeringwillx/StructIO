@@ -3,18 +3,14 @@ from structio import *
 
 class ExtendedStruct(Struct):
     def _get_7bstr_len(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start, ret_len=True)
+        str_len, int_len = self.unpack_7bint(b, start)
         return int_len + str_len
         
-    def unpack_7bstr(self, b, start=0, ret_len=False):
-        str_len, int_len = self.unpack_7bint(b, start, ret_len=True)
+    def unpack_7bstr(self, b, start=0):
+        str_len, int_len = self.unpack_7bint(b, start)
         string = self.unpack_str(b[(start + int_len):(start + int_len + str_len)])
+        return string, int_len + str_len
         
-        if ret_len:
-            return string, int_len + str_len
-        else:
-            return string
-            
     def pack_7bstr(self, string):
         b = self.pack_str(string)
         return self.pack_7bint(len(b)) + b
@@ -80,21 +76,21 @@ class PackUnpackFunctionsTest(unittest.TestCase):
         
     def testcstr(self):
         struct = Struct()
-        self.assertEqual('Unit Test', struct.unpack_cstr(struct.pack_cstr('Unit Test')))
-        self.assertEqual('Test', struct.unpack_cstr(b'Unit\x00Test\x00', 5))
+        self.assertEqual('Unit Test', struct.unpack_cstr(struct.pack_cstr('Unit Test'))[0])
+        self.assertEqual('Test', struct.unpack_cstr(b'Unit\x00Test\x00', 5)[0])
         
     def testpstr(self):
         struct = Struct('big')
-        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2), 2)) #default endian
-        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'little'), 2, 'little')) #little endian
-        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'big'), 2, 'big')) #big endian
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2), 2)[0]) #default endian
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'little'), 2, 'little')[0]) #little endian
+        self.assertEqual('Unit Test', struct.unpack_pstr(struct.pack_pstr('Unit Test', 2, 'big'), 2, 'big')[0]) #big endian
         
-        self.assertEqual('Test', struct.unpack_pstr(b'\x04Unit\x04Test', 1, 'little', 5))
+        self.assertEqual('Test', struct.unpack_pstr(b'\x04Unit\x04Test', 1, 'little', 5)[0])
         
     def test7bint(self):
         struct = Struct()
-        self.assertEqual(128, struct.unpack_7bint(struct.pack_7bint(128)))
-        self.assertEqual(128, struct.unpack_7bint(b'\x00' + struct.pack_7bint(128), start=1))
+        self.assertEqual(128, struct.unpack_7bint(struct.pack_7bint(128))[0])
+        self.assertEqual(128, struct.unpack_7bint(b'\x00' + struct.pack_7bint(128), start=1)[0])
         
 class GenericStreamMethodsTest(unittest.TestCase):
     def testgettersetter(self):
@@ -559,7 +555,7 @@ class InheritanceTest(unittest.TestCase):
         
     def testpackunpack7bstr(self):
         struct = ExtendedStruct()
-        self.assertEqual('Unit Test', struct.unpack_7bstr(struct.pack_7bstr('Unit Test')))
+        self.assertEqual('Unit Test', struct.unpack_7bstr(struct.pack_7bstr('Unit Test'))[0])
         
     def testreadwrite7bstr(self):
         stream = ExtendedStructIO()

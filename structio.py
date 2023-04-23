@@ -83,30 +83,22 @@ class Struct:
             
         return end - start + 1
         
-    def unpack_cstr(self, b, start=0, ret_len=False):
+    def unpack_cstr(self, b, start=0):
         length = self._get_cstr_len(b, start)
         string = self.unpack_str(b[start:(start + length - 1)])
+        return string, length
         
-        if ret_len:
-            return string, length
-        else:
-            return string
-            
     def pack_cstr(self, string):
         return self.pack_str(string) + b'\x00'
         
     def _get_pstr_len(self, b, numbytes, endian=None, start=0):
         return numbytes + self.unpack_int(b[start:(start + numbytes)], endian)
         
-    def unpack_pstr(self, b, numbytes, endian=None, start=0, ret_len=False):
+    def unpack_pstr(self, b, numbytes, endian=None, start=0):
         length = self._get_pstr_len(b, numbytes, endian, start)
         string = self.unpack_str(b[(start + numbytes):(start + length)])
+        return string, length
         
-        if ret_len:
-            return string, length
-        else:
-            return string
-            
     def pack_pstr(self, string, numbytes, endian=None):
         b = self.pack_str(string)
         return self.pack_int(len(b), numbytes, endian) + b
@@ -118,11 +110,11 @@ class Struct:
             
         return i + 1
         
-    def unpack_7bint(self, b, start=0, ret_len=False):
+    def unpack_7bint(self, b, start=0):
         number = 0
         i = 0
         
-        byte = b[start + i]
+        byte = b[start]
         while byte > 127:
             number |= (byte & 0b01111111) << (7 * i)
             i += 1
@@ -132,11 +124,8 @@ class Struct:
         number |= byte << (7 * i)
         length = i + 1
         
-        if ret_len:
-            return number, length
-        else:
-            return number
-            
+        return number, length
+        
     def pack_7bint(self, number):
         b = bytearray()
         
@@ -258,7 +247,7 @@ class StructIO(io.BytesIO):
         return end
         
     def _read(self, unpack_func, unpack_args):
-        value, length = unpack_func(self.getvalue(), *unpack_args, start=self.tell(), ret_len=True)
+        value, length = unpack_func(self.getvalue(), *unpack_args, start=self.tell())
         self.seek(length, 1)
         return value
         
