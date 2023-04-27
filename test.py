@@ -105,43 +105,43 @@ class GenericStreamMethodsTest(unittest.TestCase):
         self.assertEqual(stream.errors, stream._struct.errors)
         
     def testlen(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream.seek(5)
         self.assertEqual(9, len(stream))
         self.assertEqual(5, stream.tell()) #should be unchanged
         
     def testeq(self):
-        stream1 = StructIO(b'Test', 'little')
-        stream2 = StructIO(b'Test', 'little')
-        stream3 = StructIO(b' Test', 'little')
+        stream1 = StructIO(b'Test')
+        stream2 = StructIO(b'Test')
+        stream3 = StructIO(b' Test')
         stream2.seek(2)
         self.assertEqual(stream1, stream2)
         stream3.seek(1)
         self.assertNotEqual(stream1, stream3)
         
     def testclear(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream.seek(5)
         stream.clear()
         self.assertEqual(0, stream.tell())
         self.assertEqual(b'', stream.read())
         
     def testiseof(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         self.assertFalse(stream.is_eof())
         self.assertEqual(0, stream.tell())
         stream.seek(0, 2)
         self.assertTrue(stream.is_eof())
         
     def testcopy(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream2 = stream.copy()
         stream.seek(0)
         self.assertEqual(0, stream2.tell())
         self.assertEqual(stream.read(), stream2.read())
         
     def testappend(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write(b'Test')
         stream.seek(0)
         stream.append(b'Unit ')
@@ -149,63 +149,63 @@ class GenericStreamMethodsTest(unittest.TestCase):
         self.assertEqual(b'Unit Test', stream.read())
     
     def testoverwrite(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write(b'Unit Test')
         stream.overwrite(0, 4, b'New')
         stream.seek(0)
         self.assertEqual(b'New Test', stream.read())
         
     def testreadall(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write(b'Unit Test')
         self.assertEqual(b'Unit Test', stream.read_all())
         self.assertEqual(0, stream.tell()) #should be back to start
         
     def testwriteall(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream.seek(0, 2)
         stream.write_all(b'New')
         self.assertEqual(0, stream.tell())
         self.assertEqual(b'New', stream.read())
         
     def testdelete(self):
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream.seek(0, 2)
         stream.delete(5)
         self.assertEqual(4, stream.tell())
         stream.seek(0)
         self.assertEqual(b'Unit', stream.read())
         
-        stream = StructIO(b'Unit Test', 'little')
+        stream = StructIO(b'Unit Test')
         stream.seek(5)
         stream.delete(10)
         self.assertEqual(b'Test', stream.read())
         
     def testfind(self):
-        stream = StructIO(b'Unit Test Unit Test', endian='little')
+        stream = StructIO(b'Unit Test Unit Test')
         self.assertEqual(5, stream.find(b'Test')) #first instance
         self.assertEqual(15, stream.find(b'Test', 2)) #second
         
     def testindex(self):
-        stream = StructIO(b'Unit Test Unit Test', endian='little')
+        stream = StructIO(b'Unit Test Unit Test')
         self.assertEqual(5, stream.index(b'Test')) #first instance
         self.assertEqual(15, stream.index(b'Test', 2)) #second
         self.assertRaises(ValueError, lambda: stream.index(b'Test', 3))
         
 class WriteReadMethodsTest(unittest.TestCase):
     def testbool(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_bool(True)
         stream.seek(0)
         self.assertEqual(True, stream.read_bool()) #True
         
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_bool(False)
         stream.seek(0)
         self.assertEqual(False, stream.read_bool()) #False
         
     def testbits(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_bits([0,1,0,1,0,1,0,1])
         stream.seek(0)
         self.assertEqual([0,1,0,1,0,1,0,1], stream.read_bits())
@@ -288,13 +288,13 @@ class WriteReadMethodsTest(unittest.TestCase):
         self.assertEqual(3.14, round(stream.read_float(8, 'big'), 2)) #double big endian
         
     def teststr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_str('Unit Test')
         stream.seek(0)
         self.assertEqual('Unit Test', stream.read_str(len('Unit Test')))
         
     def testcstr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_cstr('Unit Test')
         stream.seek(0)
         self.assertEqual('Unit Test', stream.read_cstr())
@@ -317,7 +317,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         self.assertEqual('Unit Test', stream.read_pstr(2, 'big')) #big endian
         
     def test7bint(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_7bint(128)
         stream.seek(0)
         self.assertEqual(128, stream.read_7bint())
@@ -325,7 +325,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         
 class AppendOverwriteMethodsTest(unittest.TestCase):
     def testappendbool(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_bool(False)
         stream.seek(0)
         stream.append_bool(True)
@@ -333,7 +333,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual(True, stream.read_bool())
         
     def testappendbits(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_bits([0,0,0,0,0,0,0,0])
         stream.seek(0)
         stream.append_bits([1,1,1,1,1,1,1,1])
@@ -448,7 +448,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual(6.28, round(stream.read_float(8, 'big'), 2)) #big endian
         
     def testappendstr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_str('Test')
         stream.seek(0)
         stream.append_str('Unit ')
@@ -456,7 +456,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Unit Test', stream.read_str(len('Unit Test')))
         
     def testappendcstr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_cstr('Test')
         stream.seek(0)
         stream.append_cstr('Unit')
@@ -491,7 +491,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Test', stream.read_pstr(2, 'big'))
         
     def testappend7bint(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_7bint(128)
         stream.seek(0)
         stream.append_7bint(127)
@@ -499,7 +499,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual(127, stream.read_7bint())
         
     def testoverwritestr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_str('Unit Test')
         stream.seek(0)
         stream.overwrite_str('Working', 9)
@@ -507,7 +507,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Working', stream.read_str(len('Working')))
         
     def testoverwritecstr(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_cstr('Unit Test')
         stream.seek(0)
         stream.overwrite_cstr('Working')
@@ -538,7 +538,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Working', stream.read_pstr(3, 'big')) #big endian
         
     def testoverwrite7bint(self):
-        stream = StructIO(endian='little')
+        stream = StructIO()
         stream.write_7bint(128)
         stream.seek(0)
         stream.overwrite_7bint(127)
