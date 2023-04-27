@@ -13,8 +13,8 @@ pip install structio
 Writing to a stream:
 
 ```python
->>> import structio
->>> stream = structio.StructIO(endian='little')
+>>> from structio import StructIO
+>>> stream = StructIO()
 >>> stream.write_int(10, 2)
 2
 >>> stream.write_float(3.14)
@@ -312,7 +312,7 @@ Overwrites the 7 bit integer at the current position with *number*.
 
 ### Extending StructIO
 
-You can add your own types by inheriting from the two base objects:
+You can add your own types by inheriting from the base Struct object:
 
 ```python
 from structio import Struct, StructIO
@@ -330,7 +330,11 @@ class ExtendedStruct(Struct):
     def pack_7bstr(self, string):
         b = self.pack_str(string)
         return self.pack_7bint(len(b)) + b
-        
+```
+
+As well as the stream object:
+
+```python
 class ExtendedStructIO(StructIO):
     def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
         super().__init__(b, endian, struct=struct)
