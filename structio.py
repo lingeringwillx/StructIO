@@ -19,13 +19,11 @@ class Struct:
     def unpack_bool(self, b):
         if isinstance(b, int):
             return b != 0
-            
+        elif len(b) == 1:
+            return b != b'\x00'
         else:
-            if len(b) == 1:
-                return b != b'\x00'
-            else:
-                raise ValueError('expected bytes object of length 1')
-                
+            raise ValueError('expected int or bytes object of length 1')
+            
     def pack_bool(self, boolean):
         if boolean:
             return b'\x01'
@@ -38,7 +36,7 @@ class Struct:
         elif len(b) == 1:
             number = self.unpack_int(b)
         else:
-            raise ValueError('expected bytes object of length 1')
+            raise ValueError('expected int or bytes object of length 1')
             
         return [number >> i & 1 for i in range(8)]
         
