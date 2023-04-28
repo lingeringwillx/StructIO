@@ -303,6 +303,7 @@ Deletes the existing Pascal string at the current position and writes *string* a
 **skip_pstr(numbytes, endian=None, n=1)**
 
 Skips the null-terminated string at the current position. *n* specifies how many null-terminated strings to skip.
+
 **delete_pstr(numbytes, endian=None)**
 
 Deletes the null-terminated string at the current position.
