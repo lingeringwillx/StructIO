@@ -173,9 +173,6 @@ class StructIO(io.BytesIO):
     def __eq__(self, other):
         return self.getvalue() == other.getvalue()
         
-    def __getitem__(self, value):
-        return self.getvalue()[value]
-        
     def is_eof(self):
         if self.read(1) == b'':
             return True
