@@ -173,6 +173,9 @@ class StructIO(io.BytesIO):
     def __eq__(self, other):
         return self.getvalue() == other.getvalue()
         
+    def __getitem__(self, value):
+        return self.getvalue()[value]
+        
     def is_eof(self):
         if self.read(1) == b'':
             return True
@@ -257,9 +260,7 @@ class StructIO(io.BytesIO):
         return self.seek(len_func(self.getvalue(), *len_args, start=self.tell()), 1)
         
     def _delete(self, len_func, len_args):
-        start = self.tell()
-        end = len_func(self.getvalue(), *len_args, start=start)
-        return self.delete(end - start)
+        return self.delete(len_func(self.getvalue(), *len_args, start=self.tell()))
         
     def read_bool(self):
         return self._struct.unpack_bool(self.read(1))
