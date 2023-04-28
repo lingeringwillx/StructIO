@@ -186,7 +186,7 @@ Replaces the bytes between positions *start* and *end* with *b*.
 
 **delete(length)**
 
-Deletes *length* bytes from the object.
+Deletes *length* bytes from the object starting from the current position.
 
 **find(bytes_sequence, n=1)**
 
