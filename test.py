@@ -31,7 +31,7 @@ class ExtendedStructIO(StructIO):
     def overwrite_7bstr(self, string):
         return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
         
-    def skip_7bstr(self, n=1):
+    def skip_7bstr(self):
         return self._skip(self._struct._get_7bstr_len, ())
         
     def delete_7bstr(self):
