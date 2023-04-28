@@ -276,9 +276,9 @@ Same as *write_cstr* but appends the value to the object at the current position
 
 Deletes the null-terminated string existing at the current location, then writes *string* as a null-terminated string in it's place.  Raises a *ValueError* if it fails to find a null termination.
 
-**skip_cstr(n=1)**
+**skip_cstr()**
 
-Skips the null-terminated string at the current position. *n* specifies how many null-terminated strings to skip.
+Skips the null-terminated string at the current position.
 
 **delete_cstr()**
 
@@ -300,9 +300,9 @@ Same as *write_pstr* but appends the value to the object at the current position
 
 Deletes the existing Pascal string at the current position and writes *string* as a Pascal string in it's place.
 
-**skip_pstr(numbytes, endian=None, n=1)**
+**skip_pstr(numbytes, endian=None)**
 
-Skips the null-terminated string at the current position. *n* specifies how many null-terminated strings to skip.
+Skips the null-terminated string at the current position.
 
 **delete_pstr(numbytes, endian=None)**
 
@@ -324,9 +324,9 @@ Converts *number* into a 7 bit integer and appends it to the object.
 
 Overwrites the 7 bit integer at the current position with *number*.
 
-**skip_7bint(n=1)**
+**skip_7bint()**
 
-Skips the 7 bit integer at the current position. *n* specifies how many null-terminated strings to skip.
+Skips the 7 bit integer at the current position.
 
 **delete_7bint()**
 
