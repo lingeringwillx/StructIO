@@ -227,9 +227,6 @@ class StructIO(io.BytesIO):
             if location == -1:
                 break
                 
-        if location != -1:
-            self.seek(location)
-            
         return location
         
     def index(self, bytes_sequence, n=1):
