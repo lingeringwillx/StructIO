@@ -125,7 +125,7 @@ class Struct:
         return number, length
         
     def pack_7bint(self, number):
-        b = bytearray()
+        b = b''
         
         while number > 127:
             b += self.pack_int(number & 0b01111111 | 0b10000000, 1) 

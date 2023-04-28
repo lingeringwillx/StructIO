@@ -31,7 +31,7 @@ class ExtendedStructIO(StructIO):
     def overwrite_7bstr(self, string):
         return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
         
-    def skip_7bstr(self):
+    def skip_7bstr(self, n=1):
         return self._skip(self._struct._get_7bstr_len, ())
         
     def delete_7bstr(self):
@@ -569,11 +569,11 @@ class SkipMethodsTest(unittest.TestCase):
         
     def testskip7bint(self):
         stream = StructIO()
-        stream.write_7bint(127)
         stream.write_7bint(128)
+        stream.write_7bint(127)
         stream.seek(0)
         stream.skip_7bint()
-        self.assertEqual(128, stream.read_7bint())
+        self.assertEqual(127, stream.read_7bint())
         
 class DeleteMethodsTest(unittest.TestCase):
     def testdeletecstr(self):
