@@ -82,19 +82,19 @@ Converts a list of integers into a byte.
 
 **unpack_int(b, endian=None, signed=False)**
 
-Converts bytes object *b* into an integer. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used. The *signed* argument is used to specify whether the integer is signed or not.
+Converts bytes object *b* into an integer. The endian can be specified with the *endian* argument. The *signed* argument is used to specify whether the integer is signed or not.
 
 **pack_int(number, numbytes, endian=None, signed=False)**
 
-Converts *number* into a bytes object with length *numbytes*. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used. The *signed* argument is used to specify whether the integer is signed or not.
+Converts *number* into a bytes object with length *numbytes* and endian *endian*. The *signed* argument is used to specify whether the integer is signed or not.
 
 **unpack_float(b, numbytes, endian=None)**
 
-Converts bytes object *b* into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used..
+Converts bytes object *b* into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **pack_float(number, numbytes, endian=None)**
 
-Converts *number* into a bytes object. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Converts *number* into a bytes object. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **unpack_str(b)**
 
@@ -114,11 +114,11 @@ Converts *string* into a bytes object representing a null-terminated string.
 
 **unpack_pstr(b, numbytes, endian=None, start=0)**
 
-Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string is specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. Returns a tuple containing both the value and the length of the type.
+Converts bytes object *b* into a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument. *b* will only be converted up to the length specified in the bytes object. If *start* is specified, then the bytes object will be converted starting from position *start*. Returns a tuple containing both the value and the length of the type.
 
 **pack_pstr(string, numbytes, endian=None)**
 
-Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string is specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Converts *string* into a bytes object in the Pascal string format. *numbytes* is used to specify how many bytes are used for the string's length. The endian of the length of the string can be specified with the *endian* argument.
 
 **unpack_7bint(b, start=0)**
 
@@ -186,7 +186,7 @@ Replaces the bytes between positions *start* and *end* with *b*.
 
 **delete(length)**
 
-Deletes *length* bytes from the object starting from *current position - length* to *current position*.
+Deletes *length* bytes from the object.
 
 **find(bytes_sequence, n=1)**
 
@@ -222,11 +222,11 @@ Converts list of integers *bits* into a byte and writes it to the object.
 
 **read_int(numbytes, endian=None, signed=False)**
 
-Reads *numbytes* bytes from the object and converts it into an integer. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used. The *signed* argument is used to specify whether the integer is signed or not.
+Reads *numbytes* bytes from the object and converts it into an integer. The endian can be specified with the *endian* argument. The *signed* argument is used to specify whether the integer is signed or not.
 
 **write_int(number, numbytes, endian=None, signed=False)**
 
-Converts *number* into a bytes object with length *numbytes* then writes it into the object. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used. The *signed* argument is used to specify whether the integer is signed or not.
+Converts *number* into a bytes object with length *numbytes* and endian *endian*, then writes it into the object. The *signed* argument is used to specify whether the integer is signed or not.
 
 **append_int(number, numbytes, endian=None, signed=False)**
 
@@ -234,15 +234,15 @@ Same as *write_int* but appends the value to the object at the current position 
 
 **read_float(numbytes, endian=None)**
 
-Reads *numbytes* bytes from the object and converts them into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Reads *numbytes* bytes from the object and converts them into a float. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **write_float(number, numbytes, endian=None)**
 
-Converts *number* into a bytes object then writes it into the object. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Converts *number* into a bytes object then writes it into the object. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **append_float(number, numbytes, endian=None)**
 
-Same as *write_float* but appends the value to the object at the current position instead of overwriting existing bytes. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Same as *write_float* but appends the value to the object at the current position instead of overwriting existing bytes. *numbytes* can be 2 for half precision, 4 for single precision, or 8 for double precision. The endian can be specified with the *endian* argument.
 
 **read_str(length)**
 
@@ -276,21 +276,36 @@ Same as *write_cstr* but appends the value to the object at the current position
 
 Deletes the null-terminated string existing at the current location, then writes *string* as a null-terminated string in it's place.  Raises a *ValueError* if it fails to find a null termination.
 
+**skip_cstr(n=1)**
+
+Skips the null-terminated string at the current position. *n* specifies how many null-terminated strings to skip.
+
+**delete_cstr()**
+
+Deletes the null-terminated string at the current position.
+
 **read_pstr(numbytes, endian=None)**
 
-Reads a Pascal string from the object and returns it. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Reads a Pascal string from the object and returns it. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument.
 
 **write_pstr(string, numbytes, endian=None)**
 
-Writes *string* to the object as a Pascal string. *numbytes* is used to specify how many bytes are used for the string's length in the object. The endian of the length of the string can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Writes *string* to the object as a Pascal string.
 
 **append_pstr(string, numbytes, endian=None)**
 
-Same as *write_pstr* but appends the value to the object at the current position instead of overwriting existing bytes. The endian of the length of the string can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Same as *write_pstr* but appends the value to the object at the current position instead of overwriting existing bytes.
 
 **overwrite_pstr(string, numbytes, endian=None)**
 
-Deletes the existing Pascal string at the current position and writes *string* as a Pascal string in it's place. *numbytes* is used to specify how many bytes are used for the integer holding the string's length. The endian of the length of the string can be specified with the *endian* argument, otherwise the endian stored in the *endian* attribute of the object is used.
+Deletes the existing Pascal string at the current position and writes *string* as a Pascal string in it's place.
+
+**skip_pstr(numbytes, endian=None, n=1)**
+
+Skips the null-terminated string at the current position. *n* specifies how many null-terminated strings to skip.
+**delete_pstr(numbytes, endian=None)**
+
+Deletes the null-terminated string at the current position.
 
 **read_7bint()**
 
@@ -307,6 +322,14 @@ Converts *number* into a 7 bit integer and appends it to the object.
 **overwrite_7bint(number)**
 
 Overwrites the 7 bit integer at the current position with *number*.
+
+**skip_7bint(n=1)**
+
+Skips the 7 bit integer at the current position. *n* specifies how many null-terminated strings to skip.
+
+**delete_7bint()**
+
+Deletes the 7 bit integer at the current position.
 
 -----
 
@@ -350,4 +373,10 @@ class ExtendedStructIO(StructIO):
         
     def overwrite_7bstr(self, string):
         return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
+		 
+    def skip_7bstr(self, n=1):
+        return self._skip(self._struct._get_7bstr_len, ())
+        
+    def delete_7bstr(self):
+        return self._delete(self._struct._get_7bstr_len, ())
 ```

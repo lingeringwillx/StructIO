@@ -31,6 +31,12 @@ class ExtendedStructIO(StructIO):
     def overwrite_7bstr(self, string):
         return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
         
+    def skip_7bstr(self, n=1):
+        return self._skip(self._struct._get_7bstr_len, ())
+        
+    def delete_7bstr(self):
+        return self._delete(self._struct._get_7bstr_len, ())
+        
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
@@ -170,15 +176,13 @@ class GenericStreamMethodsTest(unittest.TestCase):
         
     def testdelete(self):
         stream = StructIO(b'Unit Test')
-        stream.seek(0, 2)
+        stream.seek(4)
         stream.delete(5)
-        self.assertEqual(4, stream.tell())
         stream.seek(0)
         self.assertEqual(b'Unit', stream.read())
         
         stream = StructIO(b'Unit Test')
-        stream.seek(5)
-        stream.delete(10)
+        stream.delete(5)
         self.assertEqual(b'Test', stream.read())
         
     def testfind(self):
@@ -323,7 +327,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         self.assertEqual(128, stream.read_7bint())
         self.assertEqual(2, stream.tell())
         
-class AppendOverwriteMethodsTest(unittest.TestCase):
+class AppendMethodsTest(unittest.TestCase):
     def testappendbool(self):
         stream = StructIO()
         stream.write_bool(False)
@@ -389,63 +393,63 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         stream.seek(0)
         stream.append_float(6.28, 2)
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(2), 2)) #default endian
+        self.assertEqual(6.28, round(stream.read_float(2), 2)) #default endian half
         
         stream = StructIO(endian='big')
         stream.write_float(3.14, 2, 'little')
         stream.seek(0)
         stream.append_float(6.28, 2, 'little')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(2, 'little'), 2)) #little endian
+        self.assertEqual(6.28, round(stream.read_float(2, 'little'), 2)) #little endian half
         
         stream = StructIO(endian='little')
         stream.write_float(3.14, 2, 'big')
         stream.seek(0)
         stream.append_float(6.28, 2, 'big')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(2, 'big'), 2)) #big endian
+        self.assertEqual(6.28, round(stream.read_float(2, 'big'), 2)) #big endian half
         
         stream = StructIO(endian='little')
         stream.write_float(3.14, 4)
         stream.seek(0)
         stream.append_float(6.28, 4)
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(4), 2)) #default endian
+        self.assertEqual(6.28, round(stream.read_float(4), 2)) #default endian single
         
         stream = StructIO(endian='big')
         stream.write_float(3.14, 4, 'little')
         stream.seek(0)
         stream.append_float(6.28, 4, 'little')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(4, 'little'), 2)) #little endian
+        self.assertEqual(6.28, round(stream.read_float(4, 'little'), 2)) #little endian single
         
         stream = StructIO(endian='little')
         stream.write_float(3.14, 4, 'big')
         stream.seek(0)
         stream.append_float(6.28, 4, 'big')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(4, 'big'), 2)) #big endian
+        self.assertEqual(6.28, round(stream.read_float(4, 'big'), 2)) #big endian single
         
         stream = StructIO(endian='little')
         stream.write_float(3.14, 8)
         stream.seek(0)
         stream.append_float(6.28, 8)
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(8), 2)) #default endian
+        self.assertEqual(6.28, round(stream.read_float(8), 2)) #default endian double
         
         stream = StructIO(endian='big')
         stream.write_float(3.14, 8, 'little')
         stream.seek(0)
         stream.append_float(6.28, 8, 'little')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(8, 'little'), 2)) #little endian
+        self.assertEqual(6.28, round(stream.read_float(8, 'little'), 2)) #little endian double
         
         stream = StructIO(endian='little')
         stream.write_float(3.14, 8, 'big')
         stream.seek(0)
         stream.append_float(6.28, 8, 'big')
         stream.seek(0)
-        self.assertEqual(6.28, round(stream.read_float(8, 'big'), 2)) #big endian
+        self.assertEqual(6.28, round(stream.read_float(8, 'big'), 2)) #big endian double
         
     def testappendstr(self):
         stream = StructIO()
@@ -498,6 +502,7 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(127, stream.read_7bint())
         
+class OverwriteMethodsTest(unittest.TestCase):
     def testoverwritestr(self):
         stream = StructIO()
         stream.write_str('Unit Test')
@@ -545,6 +550,70 @@ class AppendOverwriteMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(127, stream.read_7bint())
         
+class SkipMethodsTest(unittest.TestCase):
+    def testskipcstr(self):
+        stream = StructIO()
+        stream.write_cstr('Unit')
+        stream.write_cstr('Test')
+        stream.seek(0)
+        stream.skip_cstr()
+        self.assertEqual('Test', stream.read_cstr())
+        
+    def testskippstr(self):
+        stream = StructIO()
+        stream.write_pstr('Unit', 2)
+        stream.write_pstr('Test', 2)
+        stream.seek(0)
+        stream.skip_pstr(2)
+        self.assertEqual('Test', stream.read_pstr(2))
+        
+    def testskip7bint(self):
+        stream = StructIO()
+        stream.write_7bint(127)
+        stream.write_7bint(128)
+        stream.seek(0)
+        stream.skip_7bint()
+        self.assertEqual(128, stream.read_7bint())
+        
+class DeleteMethodsTest(unittest.TestCase):
+    def testdeletecstr(self):
+        stream = StructIO()
+        stream.write_cstr('Unit')
+        stream.write_cstr('Test')
+        stream.seek(0)
+        stream.delete_cstr()
+        self.assertEqual('Test', stream.read_cstr())
+        
+    def testdeletepstr(self):
+        stream = StructIO(endian='big')
+        stream.write_pstr('Unit', 2)
+        stream.write_pstr('Test', 2)
+        stream.seek(0)
+        stream.delete_pstr(2)
+        self.assertEqual('Test', stream.read_pstr(2)) #default endian
+        
+        stream = StructIO(endian='big')
+        stream.write_pstr('Unit', 2, 'little')
+        stream.write_pstr('Test', 2, 'little')
+        stream.seek(0)
+        stream.delete_pstr(2, 'little')
+        self.assertEqual('Test', stream.read_pstr(2, 'little')) #little endian
+        
+        stream = StructIO(endian='little')
+        stream.write_pstr('Unit', 2, 'big')
+        stream.write_pstr('Test', 2, 'big')
+        stream.seek(0)
+        stream.delete_pstr(2, 'big')
+        self.assertEqual('Test', stream.read_pstr(2, 'big')) #big endian
+        
+    def testdelete7bint(self):
+        stream = StructIO()
+        stream.write_7bint(128)
+        stream.write_7bint(127)
+        stream.seek(0)
+        stream.delete_7bint()
+        self.assertEqual(127, stream.read_7bint())
+        
 class InheritanceTest(unittest.TestCase):
     def testattraccess(self):
         struct = ExtendedStruct()
@@ -579,5 +648,21 @@ class InheritanceTest(unittest.TestCase):
         stream.overwrite_7bstr('Working')
         stream.seek(0)
         self.assertEqual('Working', stream.read_7bstr())
+        
+    def testskip7bstr(self):
+        stream = ExtendedStructIO()
+        stream.write_7bstr('Unit')
+        stream.write_7bstr('Test')
+        stream.seek(0)
+        stream.skip_7bstr()
+        self.assertEqual('Test', stream.read_7bstr())
+        
+    def testdelete7bstr(self):
+        stream = ExtendedStructIO()
+        stream.write_7bstr('Unit')
+        stream.write_7bstr('Test')
+        stream.seek(0)
+        stream.delete_7bstr()
+        self.assertEqual('Test', stream.read_7bstr())
         
 unittest.main()

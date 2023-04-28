@@ -213,15 +213,8 @@ class StructIO(io.BytesIO):
         return length
         
     def delete(self, length):
-        current_position = self.tell()
-        
-        if current_position - length < 0:
-            length = current_position
-            
-        start = current_position - length
-        self.overwrite(start, current_position, b'')
-        
-        return length
+        start = self.tell()
+        return self.overwrite(start, start + length , b'')
         
     def find(self, bytes_sequence, n=1):
         start = self.tell()
@@ -234,15 +227,18 @@ class StructIO(io.BytesIO):
             if location == -1:
                 break
                 
+        if location != -1:
+            self.seek(location)
+            
         return location
         
     def index(self, bytes_sequence, n=1):
-        end = self.find(bytes_sequence, n)
+        location = self.find(bytes_sequence, n)
         
-        if end == -1:
+        if location == -1:
             raise ValueError('{} not found'.format(bytes_sequence))
             
-        return end
+        return location
         
     def _read(self, unpack_func, unpack_args):
         value, length = unpack_func(self.getvalue(), *unpack_args, start=self.tell())
@@ -253,6 +249,14 @@ class StructIO(io.BytesIO):
         start = self.tell()
         length = len_func(self.getvalue(), *len_args, start=start)
         return self.overwrite(start, start + length, pack_func(*pack_args))
+        
+    def _skip(self, len_func, len_args):
+        return self.seek(len_func(self.getvalue(), *len_args, start=self.tell()), 1)
+        
+    def _delete(self, len_func, len_args):
+        start = self.tell()
+        end = len_func(self.getvalue(), *len_args, start=start)
+        return self.delete(end - start)
         
     def read_bool(self):
         return self._struct.unpack_bool(self.read(1))
@@ -314,6 +318,12 @@ class StructIO(io.BytesIO):
     def overwrite_cstr(self, string):
         return self._overwrite(self._struct._get_cstr_len, (), self._struct.pack_cstr, (string,))
         
+    def skip_cstr(self):
+        return self._skip(self._struct._get_cstr_len, ())
+        
+    def delete_cstr(self):
+        return self._delete(self._struct._get_cstr_len, ())
+        
     def read_pstr(self, numbytes, endian=None):
         return self._read(self._struct.unpack_pstr, (numbytes, endian))
         
@@ -326,6 +336,12 @@ class StructIO(io.BytesIO):
     def overwrite_pstr(self, string, numbytes, endian=None):
         return self._overwrite(self._struct._get_pstr_len, (numbytes, endian), self._struct.pack_pstr, (string, numbytes, endian))
         
+    def skip_pstr(self, numbytes, endian=None):
+        return self._skip(self._struct._get_pstr_len, (numbytes, endian))
+        
+    def delete_pstr(self, numbytes, endian=None):
+        return self._delete(self._struct._get_pstr_len, (numbytes, endian))
+        
     def read_7bint(self):
         return self._read(self._struct.unpack_7bint, ())
         
@@ -337,3 +353,9 @@ class StructIO(io.BytesIO):
         
     def overwrite_7bint(self, number):
         return self._overwrite(self._struct._get_7bint_len, (), self._struct.pack_7bint, (number,))
+        
+    def skip_7bint(self):
+        return self._skip(self._struct._get_7bint_len, ())
+        
+    def delete_7bint(self):
+        return self._delete(self._struct._get_7bint_len, ())
