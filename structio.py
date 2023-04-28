@@ -214,7 +214,13 @@ class StructIO(io.BytesIO):
         
     def delete(self, length):
         start = self.tell()
-        return self.overwrite(start, start + length , b'')
+        object_length = len(self)
+        
+        if start + length > object_length:
+            length = object_length - start
+            
+        self.overwrite(start, start + length , b'')
+        return length
         
     def find(self, bytes_sequence, n=1):
         start = self.tell()
