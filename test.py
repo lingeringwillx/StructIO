@@ -98,6 +98,23 @@ class PackUnpackFunctionsTest(unittest.TestCase):
         self.assertEqual(128, struct.unpack_7bint(struct.pack_7bint(128))[0])
         self.assertEqual(128, struct.unpack_7bint(b'\x00' + struct.pack_7bint(128), start=1)[0])
         
+class ExampleTest(unittest.TestCase):
+    def testexample(self):
+        #making sure that the example at least doesn't crash
+        stream = StructIO()
+        stream.write_int(10, 2)
+        stream.write_float(3.14, 4)
+        stream.write_cstr('Hello')
+        stream.write_pstr('World!', 1)
+        stream.seek(0)
+        stream.read()
+        
+        stream.seek(0)
+        stream.read_int(2)
+        stream.read_float(4)
+        stream.read_cstr()
+        stream.read_pstr(1)
+        
 class GenericStreamMethodsTest(unittest.TestCase):
     def testgettersetter(self):
         stream = StructIO(b'', 'little', 'utf-8', 'errors')

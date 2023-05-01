@@ -64,9 +64,6 @@ class Struct:
     def pack_float(self, number, numbytes, endian=None):
         return struct.pack(self._get_format(numbytes, self._get_endian(endian)), number)
         
-    def _get_str_len(self, b, length, start=0):
-        return length
-        
     def unpack_str(self, b):
         return b.decode(self.encoding, errors=self.errors)
         
@@ -305,7 +302,8 @@ class StructIO(io.BytesIO):
         return self.append(self._struct.pack_str(string))
         
     def overwrite_str(self, string, length):
-        return self._overwrite(self._struct._get_str_len, (length,), self._struct.pack_str, (string,))
+        start = self.tell()
+        return self.overwrite(start, start + length, self._struct.pack_str(string))
         
     def read_cstr(self):
         return self._read(self._struct.unpack_cstr, ())

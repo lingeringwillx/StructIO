@@ -17,7 +17,7 @@ Writing to a stream:
 >>> stream = StructIO()
 >>> stream.write_int(10, 2)
 2
->>> stream.write_float(3.14)
+>>> stream.write_float(3.14, 4)
 4
 >>> stream.write_cstr('Hello')
 6
@@ -36,7 +36,7 @@ Reading from the same stream:
 0
 >>> stream.read_int(2)
 10
->>> stream.read_float()
+>>> stream.read_float(4)
 3.140000104904175
 >>> stream.read_cstr()
 'Hello'
