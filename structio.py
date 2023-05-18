@@ -137,6 +137,10 @@ class StructIO(io.BytesIO):
         self._struct = struct(endian, encoding, errors)
         
     @property
+    def buffer(self):
+        return self.getvalue()
+        
+    @property
     def endian(self):
         return self._struct.endian
         
@@ -161,11 +165,7 @@ class StructIO(io.BytesIO):
         self._struct.errors = value
         
     def __len__(self):
-        position = self.tell()
-        self.seek(0, 2)
-        length = self.tell()
-        self.seek(position)
-        return length
+        return len(self.getvalue())
         
     def __eq__(self, other):
         return self.getvalue() == other.getvalue()

@@ -118,6 +118,8 @@ class ExampleTest(unittest.TestCase):
 class GenericStreamMethodsTest(unittest.TestCase):
     def testgettersetter(self):
         stream = StructIO(b'', 'little', 'utf-8', 'errors')
+        self.assertEqual(stream.buffer, stream.getvalue())
+        
         stream.endian = 'big'
         self.assertEqual(stream.endian, stream._struct.endian)
         
