@@ -52,8 +52,6 @@ Contains methods for unpacking and packing various data types.
 
 ### Attributes
 
-**buffer**: the current content of the object.
-
 **endian**: specifies the default endian that would be used by the object, can either be *'little'* or *'big'*.
 
 **encoding**: specifies the default encoding used by string methods.
@@ -137,6 +135,8 @@ Converts *number* into a 7 bit integer.
 File-like object stored in memory. Extends *io.BytesIO* from the standard library, which means that it has all of the basic methods of file-like objects, including *read*, *write*, *seek*, *tell*, and *truncate*.
 
 ### Attributes
+
+**buffer**: the current content of the object.
 
 **endian**: specifies the default endian that would be used by the object, can either be *'little'* or *'big'*.
 
