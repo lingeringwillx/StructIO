@@ -19,6 +19,9 @@ class ExtendedStructIO(StructIO):
     def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
         super().__init__(b, endian, struct=struct)
         
+    def copy(self):
+        return ExtendedStructIO(self.getvalue(), self._struct.endian)
+        
     def read_7bstr(self):
         return self._read(self._struct.unpack_7bstr, ())
         
@@ -640,6 +643,13 @@ class InheritanceTest(unittest.TestCase):
         
         stream = ExtendedStructIO()
         stream.encoding
+        
+    def testcopy(self):
+        stream = ExtendedStructIO()
+        stream2 = stream.copy()
+        
+        self.assertEqual(stream.getvalue(), stream2.getvalue())
+        self.assertEqual(stream.endian, stream2.endian)
         
     def testpackunpack7bstr(self):
         struct = ExtendedStruct()

@@ -365,6 +365,9 @@ class ExtendedStructIO(StructIO):
     def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
         super().__init__(b, endian, struct=struct)
         
+    def copy(self):
+        return ExtendedStructIO(self.getvalue(), self._struct.endian)
+		
     def read_7bstr(self):
         return self._read(self._struct.unpack_7bstr, ())
         
