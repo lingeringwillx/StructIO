@@ -114,7 +114,6 @@ class PackUnpackFunctionsTest(unittest.TestCase):
 class ExampleTest(unittest.TestCase):
     def testexample(self):
         #making sure that the example at least doesn't crash
-        struct = Struct()
         stream = StructIO()
         stream.write_int(10, 2)
         stream.write_float(3.14, 4)
