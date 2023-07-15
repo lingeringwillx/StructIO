@@ -13,7 +13,7 @@ pip install structio
 Writing to a stream:
 
 ```python
->>> from structio import StructIO
+>>> from structio import *
 >>> stream = StructIO()
 >>> stream.write_int(10, 2)
 2
@@ -136,19 +136,23 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Attributes
 
-**buffer**: the current content of the object.
+**buffer**: the current content of the object (read only).
 
-**endian**: specifies the default endian that would be used by the object, can either be *'little'* or *'big'*.
+**pos**: the current position in the object.
 
-**encoding**: specifies the default encoding used by string methods.
+**end**: the length of the object (read only).
 
-**errors**: specifies default error handling behavior when encoding or decoding strings. More information could be found in [Python's documentation](https://docs.python.org/3/library/codecs.html#error-handlers).
+**endian**: the default endian that would be used by the object (read only).
+
+**encoding**: the default encoding used by string methods (read only).
+
+**errors**: the default error handling behavior when encoding or decoding strings (read only).
 
 ### Methods
 
-**StructIO(b=b'', endian='little', encoding='utf-8', errors='ignore', struct=Struct)**
+**StructIO(b=b'', struct=structio._struct)**
 
-Take bytes object *b* and returns a *StructIO* instance containing *b*. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*. *struct* is the class used for unpacking and packing, should either be [Struct](#Struct) or a class implementing the same methods..
+Take bytes object *b* and returns a *StructIO* instance containing *b*. *struct* is the object used for unpacking and packing, should either be [Struct](#Struct) or an object implementing the same methods. The default Struct object used has endian *'little'* and encoding *'utf-8'* and error handler *'ignore'*.
 
 **\_\_len\_\_()**
 
@@ -361,15 +365,22 @@ class ExtendedStruct(Struct):
 As well as the stream object:
 
 ```python
+extended_struct = ExtendedStruct()
+
 class ExtendedStructIO(StructIO):
-    def __init__(self, b=b'', endian='little', struct=ExtendedStruct):
-        super().__init__(b, endian, struct=struct)
+    def __init__(self, b=b'', struct=extended_struct):
+        super().__init__(b, struct)
         
     def copy(self):
-        return ExtendedStructIO(self.getvalue(), self._struct.endian)
-		
+        return ExtendedStructIO(self.getvalue(), self._struct)
+        
+    def _get_7bstr_len(self):
+        return self._struct._get_7bstr_len(self.getvalue(), start=self.tell())
+        
     def read_7bstr(self):
-        return self._read(self._struct.unpack_7bstr, ())
+        value, length = self._struct.unpack_7bstr(self.getvalue(), start=self.tell())
+        self.seek(length, 1)
+        return value
         
     def write_7bstr(self, string):
         return self.write(self._struct.pack_7bstr(string))
@@ -378,11 +389,12 @@ class ExtendedStructIO(StructIO):
         return self.append(self._struct.pack_7bstr(string))
         
     def overwrite_7bstr(self, string):
-        return self._overwrite(self._struct._get_7bstr_len, (), self._struct.pack_7bstr, (string,))
-		 
+        start = self.tell()
+        return self.overwrite(start, start + self._get_7bstr_len(), self._struct.pack_7bstr(string))
+        
     def skip_7bstr(self):
-        return self._skip(self._struct._get_7bstr_len, ())
+        return self.seek(self._get_7bstr_len(), 1)
         
     def delete_7bstr(self):
-        return self._delete(self._struct._get_7bstr_len, ())
+        return self.delete(self._get_7bstr_len())
 ```
