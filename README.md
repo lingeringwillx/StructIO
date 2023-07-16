@@ -150,7 +150,7 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Methods
 
-**StructIO(b=b'', struct=structio._struct)**
+**StructIO(b=b'', struct=_struct)**
 
 Take bytes object *b* and returns a *StructIO* instance containing *b*. *struct* is the object used for unpacking and packing, should either be [Struct](#Struct) or an object implementing the same methods. The default Struct object used has endian *'little'* and encoding *'utf-8'* and error handler *'ignore'*.
 
