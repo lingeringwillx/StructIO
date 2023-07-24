@@ -138,10 +138,6 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 **buffer**: the current content of the object (read only).
 
-**pos**: the current position in the object.
-
-**end**: the length of the object (read only).
-
 **endian**: the default endian that would be used by the object (read only).
 
 **encoding**: the default encoding used by string methods (read only).

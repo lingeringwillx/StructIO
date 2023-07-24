@@ -136,16 +136,6 @@ class GenericStreamMethodsTest(unittest.TestCase):
         self.assertEqual(stream.encoding, stream._struct.encoding)
         self.assertEqual(stream.errors, stream._struct.errors)
         
-    def testposend(self):
-        stream = StructIO(b'Test')
-        self.assertEqual(stream.pos, stream.tell())
-        stream.pos = 2
-        self.assertEqual(stream.pos, stream.tell())
-        stream.pos += 2
-        self.assertEqual(stream.pos, stream.tell())
-        stream.pos = stream.end - 2
-        self.assertEqual(stream.pos, stream.tell())
-        
     def testlen(self):
         stream = StructIO(b'Unit Test')
         stream.seek(5)

@@ -143,18 +143,6 @@ class StructIO(io.BytesIO):
         return self.getvalue()
         
     @property
-    def pos(self):
-        return self.tell()
-        
-    @pos.setter
-    def pos(self, value):
-        self.seek(value)
-        
-    @property
-    def end(self):
-        return len(self.getvalue())
-        
-    @property
     def endian(self):
         return self._struct.endian
         
