@@ -62,7 +62,7 @@ Contains methods for unpacking and packing various data types.
 
 **Struct(endian='little', encoding='utf-8', errors='ignore')**
 
-Creates a new *Struct* object with the provided arguments as defaults. The *endian* argument specifies the default endian that would be used by the object, should either be *'little'* or *'big'*.
+Creates a new *Struct* object with the provided arguments used as defaults.
 
 **unpack_bool(b)**
 
@@ -138,17 +138,17 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 **buffer**: the current content of the object (read only).
 
-**endian**: the default endian that would be used by the object (read only).
+**endian**: the default endian that would be used by the object.
 
-**encoding**: the default encoding used by string methods (read only).
+**encoding**: the default encoding used by string methods.
 
-**errors**: the default error handling behavior when encoding or decoding strings (read only).
+**errors**: the default error handling behavior when encoding or decoding strings.
 
 ### Methods
 
-**StructIO(b=b'', struct=_struct)**
+**StructIO(b=b'', endian='little', encoding='utf-8', errors='ignore')**
 
-Take bytes object *b* and returns a *StructIO* instance containing *b*. *struct* is the object used for unpacking and packing, should either be [Struct](#Struct) or an object implementing the same methods. The default Struct object used has endian *'little'* and encoding *'utf-8'* and error handler *'ignore'*.
+Take bytes object *b* and returns a *StructIO* instance containing *b* with the provided arguments used as defaults.
 
 **\_\_len\_\_()**
 
@@ -361,14 +361,13 @@ class ExtendedStruct(Struct):
 As well as the stream object:
 
 ```python
-extended_struct = ExtendedStruct()
-
 class ExtendedStructIO(StructIO):
-    def __init__(self, b=b'', struct=extended_struct):
-        super().__init__(b, struct)
+    def __init__(self, b=b'', endian='little'):
+        super().__init__(b)
+        self._struct = ExtendedStruct(endian)
         
     def copy(self):
-        return ExtendedStructIO(self.getvalue(), self._struct)
+        return ExtendedStructIO(self.getvalue(), self._struct.endian)
         
     def _get_7bstr_len(self):
         return self._struct._get_7bstr_len(self.getvalue(), start=self.tell())

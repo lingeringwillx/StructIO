@@ -131,12 +131,10 @@ class Struct:
         b += self.pack_int(number, 1)
         return b
         
-_struct = Struct()
-
 class StructIO(io.BytesIO):
-    def __init__(self, b=b'', struct=_struct):
+    def __init__(self, b=b'', endian='little', encoding='utf-8', errors='ignore'):
         super().__init__(b)
-        self._struct = struct
+        self._struct = Struct(endian, encoding, errors)
         
     @property
     def buffer(self):
@@ -146,13 +144,25 @@ class StructIO(io.BytesIO):
     def endian(self):
         return self._struct.endian
         
+    @endian.setter
+    def endian(self, value):
+        self._struct.endian = value
+        
     @property
     def encoding(self):
         return self._struct.encoding
         
+    @encoding.setter
+    def encoding(self, value):
+        self._struct.encoding = value
+        
     @property
     def errors(self):
         return self._struct.errors
+        
+    @errors.setter
+    def errors(self, value):
+        self._struct.errors = value
         
     def __len__(self):
         return len(self.getvalue())
@@ -168,7 +178,7 @@ class StructIO(io.BytesIO):
             return False
             
     def copy(self):
-        return StructIO(self.getvalue(), self._struct)
+        return StructIO(self.getvalue(), self._struct.endian, self._struct.encoding, self._struct.errors)
         
     def read_all(self):
         self.seek(0)

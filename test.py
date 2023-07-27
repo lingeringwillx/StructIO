@@ -15,14 +15,13 @@ class ExtendedStruct(Struct):
         b = self.pack_str(string)
         return self.pack_7bint(len(b)) + b
         
-extended_struct = ExtendedStruct()
-
 class ExtendedStructIO(StructIO):
-    def __init__(self, b=b'', struct=extended_struct):
-        super().__init__(b, struct)
+    def __init__(self, b=b'', endian='little'):
+        super().__init__(b)
+        self._struct = ExtendedStruct(endian)
         
     def copy(self):
-        return ExtendedStructIO(self.getvalue(), self._struct)
+        return ExtendedStructIO(self.getvalue(), self._struct.endian)
         
     def _get_7bstr_len(self):
         return self._struct._get_7bstr_len(self.getvalue(), start=self.tell())
@@ -48,8 +47,6 @@ class ExtendedStructIO(StructIO):
     def delete_7bstr(self):
         return self.delete(self._get_7bstr_len())
         
-big_struct = Struct('big')
-
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
@@ -129,11 +126,20 @@ class ExampleTest(unittest.TestCase):
         stream.read_pstr(1)
         
 class GenericStreamMethodsTest(unittest.TestCase):
-    def testgetter(self):
+    def testgettersetter(self):
         stream = StructIO()
         self.assertEqual(stream.buffer, stream.getvalue())
+        
         self.assertEqual(stream.endian, stream._struct.endian)
+        stream.endian = 'big'
+        self.assertEqual(stream.endian, stream._struct.endian)
+        
         self.assertEqual(stream.encoding, stream._struct.encoding)
+        stream.encoding = 'ascii'
+        self.assertEqual(stream.encoding, stream._struct.encoding)
+        
+        self.assertEqual(stream.errors, stream._struct.errors)
+        stream.errors = 'strict'
         self.assertEqual(stream.errors, stream._struct.errors)
         
     def testlen(self):
@@ -246,7 +252,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(10, stream.read_int(2)) #default endian unsigned
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_int(10, 2, 'little')
         stream.seek(0)
         self.assertEqual(10, stream.read_int(2, 'little')) #little endian unsigned
@@ -261,7 +267,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(-10, stream.read_int(2, signed=True)) #default endian signed
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_int(-10, 2, 'little', signed=True)
         stream.seek(0)
         self.assertEqual(-10, stream.read_int(2, 'little', signed=True)) #little endian signed
@@ -277,7 +283,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(2), 2)) #half default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 2, 'little')
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(2, 'little'), 2)) #half little endian
@@ -292,7 +298,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(4), 2)) #single default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 4, 'little')
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(4, 'little'), 2)) #single little endian
@@ -307,7 +313,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(8), 2)) #double default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 8, 'little')
         stream.seek(0)
         self.assertEqual(3.14, round(stream.read_float(8, 'little'), 2)) #double little endian
@@ -336,7 +342,7 @@ class WriteReadMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual('Unit Test', stream.read_pstr(2)) #default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit Test', 2, 'little')
         stream.seek(0)
         self.assertEqual('Unit Test', stream.read_pstr(2, 'little')) #little endian
@@ -378,7 +384,7 @@ class AppendMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(1, stream.read_int(2)) #default endian unsigned
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_int(2, 2, 'little')
         stream.seek(0)
         stream.append_int(1, 2, 'little')
@@ -399,7 +405,7 @@ class AppendMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(-1, stream.read_int(2, signed=True)) #default endian signed
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_int(-2, 2, 'little', signed=True)
         stream.seek(0)
         stream.append_int(-1, 2, 'little', signed=True)
@@ -421,7 +427,7 @@ class AppendMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(6.28, round(stream.read_float(2), 2)) #default endian half
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 2, 'little')
         stream.seek(0)
         stream.append_float(6.28, 2, 'little')
@@ -442,7 +448,7 @@ class AppendMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(6.28, round(stream.read_float(4), 2)) #default endian single
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 4, 'little')
         stream.seek(0)
         stream.append_float(6.28, 4, 'little')
@@ -463,7 +469,7 @@ class AppendMethodsTest(unittest.TestCase):
         stream.seek(0)
         self.assertEqual(6.28, round(stream.read_float(8), 2)) #default endian double
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_float(3.14, 8, 'little')
         stream.seek(0)
         stream.append_float(6.28, 8, 'little')
@@ -504,7 +510,7 @@ class AppendMethodsTest(unittest.TestCase):
         self.assertEqual('Unit', stream.read_pstr(2)) #default endian
         self.assertEqual('Test', stream.read_pstr(2))
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Test', 2, 'little')
         stream.seek(0)
         stream.append_pstr('Unit', 2, 'little')
@@ -547,14 +553,14 @@ class OverwriteMethodsTest(unittest.TestCase):
         self.assertEqual('Working', stream.read_cstr())
         
     def testoverwritepstr(self):
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit Test', 2)
         stream.seek(0)
         stream.overwrite_pstr('Working', 3)
         stream.seek(0)
         self.assertEqual('Working', stream.read_pstr(3)) #default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit Test', 2, 'little')
         stream.seek(0)
         stream.overwrite_pstr('Working', 3, 'little')
@@ -611,14 +617,14 @@ class DeleteMethodsTest(unittest.TestCase):
         self.assertEqual('Test', stream.read_cstr())
         
     def testdeletepstr(self):
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit', 2)
         stream.write_pstr('Test', 2)
         stream.seek(0)
         stream.delete_pstr(2)
         self.assertEqual('Test', stream.read_pstr(2)) #default endian
         
-        stream = StructIO(struct=big_struct)
+        stream = StructIO(endian='big')
         stream.write_pstr('Unit', 2, 'little')
         stream.write_pstr('Test', 2, 'little')
         stream.seek(0)
