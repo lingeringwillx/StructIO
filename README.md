@@ -136,7 +136,7 @@ File-like object stored in memory. Extends *io.BytesIO* from the standard librar
 
 ### Attributes
 
-**buffer**: the current content of the object (read only).
+**buffer**: the current content of the object.
 
 **endian**: the default endian that would be used by the object.
 
@@ -166,14 +166,6 @@ Return True if the end of the stream has been reached.
 
 Creates a copy of the object and returns it.
 
-**read_all()**
-
-Reads and returns all of the content of the object.
-
-**write_all(buffer)**
-
-Overwrites the entire object with bytes object *buffer*.
-
 **clear()**
 
 Clear the internal buffer of the object.
@@ -182,9 +174,9 @@ Clear the internal buffer of the object.
 
 Appends bytes object *b* to the object at the current location.
 
-**overwrite(self, start, end, b)**
+**overwrite(self, length, b)**
 
-Replaces the bytes between positions *start* and *end* with *b*.
+Overwrites *length* bytes at the current position with *b*.
 
 **delete(length)**
 
@@ -304,11 +296,11 @@ Deletes the existing Pascal string at the current position and writes *string* a
 
 **skip_pstr(numbytes, endian=None)**
 
-Skips the null-terminated string at the current position.
+Skips the Pascal string at the current position.
 
 **delete_pstr(numbytes, endian=None)**
 
-Deletes the null-terminated string at the current position.
+Deletes the Pascal string at the current position.
 
 **read_7bint()**
 
@@ -333,63 +325,3 @@ Skips the 7 bit integer at the current position.
 **delete_7bint()**
 
 Deletes the 7 bit integer at the current position.
-
------
-
-### Extending StructIO
-
-You can add your own types by inheriting from the base Struct object:
-
-```python
-from structio import Struct, StructIO
-
-class ExtendedStruct(Struct):
-    def _get_7bstr_len(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start)
-        return int_len + str_len
-        
-    def unpack_7bstr(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start)
-        string = self.unpack_str(b[(start + int_len):(start + int_len + str_len)])
-        return string, int_len + str_len
-        
-    def pack_7bstr(self, string):
-        b = self.pack_str(string)
-        return self.pack_7bint(len(b)) + b
-```
-
-As well as the stream object:
-
-```python
-class ExtendedStructIO(StructIO):
-    def __init__(self, b=b'', endian='little'):
-        super().__init__(b)
-        self._struct = ExtendedStruct(endian)
-        
-    def copy(self):
-        return ExtendedStructIO(self.getvalue(), self._struct.endian)
-        
-    def _get_7bstr_len(self):
-        return self._struct._get_7bstr_len(self.getvalue(), start=self.tell())
-        
-    def read_7bstr(self):
-        value, length = self._struct.unpack_7bstr(self.getvalue(), start=self.tell())
-        self.seek(length, 1)
-        return value
-        
-    def write_7bstr(self, string):
-        return self.write(self._struct.pack_7bstr(string))
-        
-    def append_7bstr(self, string):
-        return self.append(self._struct.pack_7bstr(string))
-        
-    def overwrite_7bstr(self, string):
-        start = self.tell()
-        return self.overwrite(start, start + self._get_7bstr_len(), self._struct.pack_7bstr(string))
-        
-    def skip_7bstr(self):
-        return self.seek(self._get_7bstr_len(), 1)
-        
-    def delete_7bstr(self):
-        return self.delete(self._get_7bstr_len())
-```

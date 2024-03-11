@@ -1,52 +1,6 @@
 import unittest
 from structio import *
 
-class ExtendedStruct(Struct):
-    def _get_7bstr_len(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start)
-        return int_len + str_len
-        
-    def unpack_7bstr(self, b, start=0):
-        str_len, int_len = self.unpack_7bint(b, start)
-        string = self.unpack_str(b[(start + int_len):(start + int_len + str_len)])
-        return string, int_len + str_len
-        
-    def pack_7bstr(self, string):
-        b = self.pack_str(string)
-        return self.pack_7bint(len(b)) + b
-        
-class ExtendedStructIO(StructIO):
-    def __init__(self, b=b'', endian='little'):
-        super().__init__(b)
-        self._struct = ExtendedStruct(endian)
-        
-    def copy(self):
-        return ExtendedStructIO(self.getvalue(), self._struct.endian)
-        
-    def _get_7bstr_len(self):
-        return self._struct._get_7bstr_len(self.getvalue(), start=self.tell())
-        
-    def read_7bstr(self):
-        value, length = self._struct.unpack_7bstr(self.getvalue(), start=self.tell())
-        self.seek(length, 1)
-        return value
-        
-    def write_7bstr(self, string):
-        return self.write(self._struct.pack_7bstr(string))
-        
-    def append_7bstr(self, string):
-        return self.append(self._struct.pack_7bstr(string))
-        
-    def overwrite_7bstr(self, string):
-        start = self.tell()
-        return self.overwrite(start, start + self._get_7bstr_len(), self._struct.pack_7bstr(string))
-        
-    def skip_7bstr(self):
-        return self.seek(self._get_7bstr_len(), 1)
-        
-    def delete_7bstr(self):
-        return self.delete(self._get_7bstr_len())
-        
 class PackUnpackFunctionsTest(unittest.TestCase):
     def testbool(self):
         struct = Struct()
@@ -126,21 +80,17 @@ class ExampleTest(unittest.TestCase):
         stream.read_pstr(1)
         
 class GenericStreamMethodsTest(unittest.TestCase):
-    def testgettersetter(self):
+    def testbufgettersetter(self):
         stream = StructIO()
         self.assertEqual(stream.buffer, stream.getvalue())
         
-        self.assertEqual(stream.endian, stream._struct.endian)
-        stream.endian = 'big'
-        self.assertEqual(stream.endian, stream._struct.endian)
+        stream.seek(4)
+        stream.buffer = b'Unit Test'
+        self.assertEqual(b'Unit Test', stream.getvalue())
         
-        self.assertEqual(stream.encoding, stream._struct.encoding)
-        stream.encoding = 'ascii'
-        self.assertEqual(stream.encoding, stream._struct.encoding)
-        
-        self.assertEqual(stream.errors, stream._struct.errors)
-        stream.errors = 'strict'
-        self.assertEqual(stream.errors, stream._struct.errors)
+        stream.seek(10)
+        stream.buffer = b'Unit Test'
+        self.assertEqual(9, stream.tell())
         
     def testlen(self):
         stream = StructIO(b'Unit Test')
@@ -189,22 +139,11 @@ class GenericStreamMethodsTest(unittest.TestCase):
     def testoverwrite(self):
         stream = StructIO()
         stream.write(b'Unit Test')
-        stream.overwrite(0, 4, b'New')
+        stream.seek(0)
+        stream.overwrite(4, b'New')
+        self.assertEqual(3, stream.tell())
         stream.seek(0)
         self.assertEqual(b'New Test', stream.read())
-        
-    def testreadall(self):
-        stream = StructIO()
-        stream.write(b'Unit Test')
-        self.assertEqual(b'Unit Test', stream.read_all())
-        self.assertEqual(0, stream.tell()) #should be back to start
-        
-    def testwriteall(self):
-        stream = StructIO(b'Unit Test')
-        stream.seek(0, 2)
-        stream.write_all(b'New')
-        self.assertEqual(0, stream.tell())
-        self.assertEqual(b'New', stream.read())
         
     def testdelete(self):
         stream = StructIO(b'Unit Test')
@@ -645,63 +584,5 @@ class DeleteMethodsTest(unittest.TestCase):
         stream.seek(0)
         stream.delete_7bint()
         self.assertEqual(127, stream.read_7bint())
-        
-class InheritanceTest(unittest.TestCase):
-    def testattraccess(self):
-        struct = ExtendedStruct()
-        struct.endian
-        
-        stream = ExtendedStructIO()
-        stream.encoding
-        
-    def testcopy(self):
-        stream = ExtendedStructIO()
-        stream2 = stream.copy()
-        
-        self.assertEqual(stream.getvalue(), stream2.getvalue())
-        self.assertEqual(stream.endian, stream2.endian)
-        
-    def testpackunpack7bstr(self):
-        struct = ExtendedStruct()
-        self.assertEqual('Unit Test', struct.unpack_7bstr(struct.pack_7bstr('Unit Test'))[0])
-        
-    def testreadwrite7bstr(self):
-        stream = ExtendedStructIO()
-        stream.write_7bstr('Unit Test')
-        stream.seek(0)
-        self.assertEqual('Unit Test', stream.read_7bstr())
-        self.assertEqual(10, stream.tell())
-        
-    def testappend7bstr(self):
-        stream = ExtendedStructIO()
-        stream.write_7bstr('Test')
-        stream.seek(0)
-        stream.append_7bstr('Unit')
-        stream.seek(0)
-        self.assertEqual('Unit', stream.read_7bstr())
-        
-    def testoverwrite7bstr(self):
-        stream = ExtendedStructIO()
-        stream.write_7bstr('Unit Test')
-        stream.seek(0)
-        stream.overwrite_7bstr('Working')
-        stream.seek(0)
-        self.assertEqual('Working', stream.read_7bstr())
-        
-    def testskip7bstr(self):
-        stream = ExtendedStructIO()
-        stream.write_7bstr('Unit')
-        stream.write_7bstr('Test')
-        stream.seek(0)
-        stream.skip_7bstr()
-        self.assertEqual('Test', stream.read_7bstr())
-        
-    def testdelete7bstr(self):
-        stream = ExtendedStructIO()
-        stream.write_7bstr('Unit')
-        stream.write_7bstr('Test')
-        stream.seek(0)
-        stream.delete_7bstr()
-        self.assertEqual('Test', stream.read_7bstr())
         
 unittest.main()
