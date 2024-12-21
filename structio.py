@@ -103,9 +103,8 @@ class Struct:
             byte = b[start + i]
 
         number += byte << (7 * i)
-        length = i + 1
 
-        return number, length
+        return number, i + 1
 
     def pack_7bint(self, number):
         b = b''
