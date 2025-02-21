@@ -2,119 +2,30 @@ import io
 import struct
 
 _endians = {'big': '>', 'little': '<'}
+_unsigned_int_formats = {1: 'B', 2: 'H', 4: 'I', 8: 'Q'}
+_signed_int_formats = {1: 'b', 2: 'h', 4: 'i', 8: 'q'}
 _float_formats = {2: 'e', 4: 'f', 8: 'd'}
 
-class Struct:
-    def __init__(self, endian='little', encoding='utf-8', errors='ignore'):
-        self.endian = endian
-        self.encoding = encoding
-        self.errors = errors
+def _get_int_format(size, n, endian, signed):
+    if size not in (1, 2, 4, 8):
+        raise ValueError("integer size '{}' not supported".format(size))
 
-    def _get_endian(self, endian):
-        if endian is None:
-            return self.endian
-        else:
-            return endian
+    if endian not in _endians:
+        raise ValueError("endian '{}' is not recognized".format(endian))
 
-    def unpack_bool(self, b):
-        if isinstance(b, int):
-            return b != 0
-        elif len(b) == 1:
-            return b != b'\x00'
-        else:
-            raise ValueError('expected int or bytes object of length 1')
+    if signed:
+        return _endians[endian] + str(n) + _signed_int_formats[size]
+    else:
+        return _endians[endian] + str(n) +  _unsigned_int_formats[size]
 
-    def pack_bool(self, boolean):
-        if boolean:
-            return b'\x01'
-        else:
-            return b'\x00'
+def _get_float_format(size, n, endian):
+    if size not in (2, 4, 8):
+        raise ValueError("float size '{}' not supported".format(size))
 
-    def unpack_bits(self, b):
-        if isinstance(b, int):
-            number = b
-        elif len(b) == 1:
-            number = self.unpack_int(b)
-        else:
-            raise ValueError('expected int or bytes object of length 1')
+    if endian not in _endians:
+        raise ValueError("endian '{}' is not recognized".format(endian))
 
-        return [number >> i & 1 for i in range(8)]
-
-    def pack_bits(self, bits):
-        return self.pack_int(sum(bits[i] << i for i in range(8)), 1)
-
-    def unpack_int(self, b, endian=None, signed=False):
-        return int.from_bytes(b, self._get_endian(endian), signed=signed)
-
-    def pack_int(self, number, size, endian=None, signed=False):
-        return number.to_bytes(size, self._get_endian(endian), signed=signed)
-
-    def _get_format(self, size, endian=None):
-        if size not in _float_formats:
-            raise ValueError("float size '{}' not supported".format(size))
-
-        if endian not in _endians:
-            raise ValueError("endian '{}' is not recognized".format(endian))
-
-        return _endians[endian] + _float_formats[size]
-
-    def unpack_float(self, b, size, endian=None):
-        return struct.unpack(self._get_format(size, self._get_endian(endian)), b)[0]
-
-    def pack_float(self, number, size, endian=None):
-        return struct.pack(self._get_format(size, self._get_endian(endian)), number)
-
-    def unpack_str(self, b):
-        return b.decode(self.encoding, errors=self.errors)
-
-    def pack_str(self, string):
-        return string.encode(self.encoding, errors=self.errors)
-
-    def unpack_cstr(self, b, start=0):
-        end = b.find(b'\x00', start)
-
-        if end == -1:
-            raise ValueError('null termination not found')
-
-        string = self.unpack_str(b[start:end])
-        return string, end - start + 1
-
-    def pack_cstr(self, string):
-        return self.pack_str(string) + b'\x00'
-
-    def unpack_pstr(self, b, size, endian=None, start=0):
-        length = self.unpack_int(b[start:start + size], endian)
-        string = self.unpack_str(b[start + size:start + size + length])
-        return string, size + length
-
-    def pack_pstr(self, string, size, endian=None):
-        b = self.pack_str(string)
-        return self.pack_int(len(b), size, endian) + b
-
-    def unpack_7bint(self, b, start=0):
-        number = 0
-        i = 0
-
-        byte = b[start]
-        while byte > 127:
-            number += (byte & 0b01111111) << (7 * i)
-            i += 1
-
-            byte = b[start + i]
-
-        number += byte << (7 * i)
-
-        return number, i + 1
-
-    def pack_7bint(self, number):
-        b = b''
-
-        while number > 127:
-            b += self.pack_int(number & 0b01111111 | 0b10000000, 1)
-            number >>= 7
-
-        b += self.pack_int(number, 1)
-        return b
+    return _endians[endian] + str(n) +  _float_formats[size]
 
 class StructIO(io.BytesIO):
     def __init__(self, b=b'', endian='little', encoding='utf-8', errors='ignore'):
@@ -160,24 +71,14 @@ class StructIO(io.BytesIO):
         self.seek(0)
         self.truncate()
 
-    def find(self, bytes_sequence, n=1):
-        start = self.tell()
-        content = self.getvalue()
-        location = content.find(bytes_sequence, start)
+    def find(self, b):
+        return self.getvalue().find(b, self.tell())
 
-        for i in range(1, n):
-            location = content.find(bytes_sequence, location + 1)
-
-            if location == -1:
-                break
-
-        return location
-
-    def index(self, bytes_sequence, n=1):
-        location = self.find(bytes_sequence, n)
+    def index(self, b):
+        location = self.find(b)
 
         if location == -1:
-            raise ValueError('{} not found'.format(bytes_sequence))
+            raise ValueError('{} not found'.format(b))
 
         return location
 
@@ -203,20 +104,23 @@ class StructIO(io.BytesIO):
     def write_int(self, number, size, endian=None, signed=False):
         return self.write(number.to_bytes(size, self._get_endian(endian), signed=signed))
 
-    def _get_format(self, size, endian=None):
-        if size not in _float_formats:
-            raise ValueError("float size '{}' not supported".format(size))
+    def read_ints(self, size, n, endian=None, signed=False):
+        return struct.unpack(_get_int_format(size, n, self._get_endian(endian), signed), self.read(size * n))
 
-        if endian not in _endians:
-            raise ValueError("endian '{}' is not recognized".format(endian))
-
-        return _endians[endian] + _float_formats[size]
+    def write_ints(self, numbers, size, endian=None, signed=False):
+        return self.write(struct.pack(_get_int_format(size, len(numbers), self._get_endian(endian), signed), *numbers))
 
     def read_float(self, size, endian=None):
-        return struct.unpack(self._get_format(size, self._get_endian(endian)), self.read(size))[0]
+        return struct.unpack(_get_float_format(size, 1, self._get_endian(endian)), self.read(size))[0]
 
     def write_float(self, number, size, endian=None):
-        return self.write(struct.pack(self._get_format(size, self._get_endian(endian)), number))
+        return self.write(struct.pack(_get_float_format(size, 1, self._get_endian(endian)), number))
+
+    def read_floats(self, size, n, endian=None):
+        return struct.unpack(_get_float_format(size, n, self._get_endian(endian)), self.read(size * n))
+
+    def write_floats(self, numbers, size, endian=None):
+        return self.write(struct.pack(_get_float_format(size, len(numbers), self._get_endian(endian)), *numbers))
 
     def read_str(self, length):
         return self.read(length).decode(self.encoding, errors=self.errors)
@@ -260,12 +164,12 @@ class StructIO(io.BytesIO):
         number = 0
         i = 0
 
-        byte = self.read_int(1)
+        byte = self.read(1)[0]
         while byte > 127:
             number += (byte & 0b01111111) << (7 * i)
             i += 1
 
-            byte = self.read_int(1)
+            byte = self.read(1)[0]
 
         number += byte << (7 * i)
 
@@ -275,15 +179,15 @@ class StructIO(io.BytesIO):
         length = 0
 
         while number > 127:
-            length += self.write_int(number & 0b01111111 | 0b10000000, 1)
+            length += self.write((number & 0b01111111 | 0b10000000).to_bytes(1))
             number >>= 7
 
-        length += self.write_int(number, 1)
+        length += self.write(number.to_bytes(1))
 
         return length
 
     def skip_7bint(self):
-        while self.read_int(1) > 127:
+        while self.read(1)[0] > 127:
             pass
 
         return self.tell()
