@@ -75,12 +75,7 @@ class StructIO(io.BytesIO):
         return self.getvalue().find(b, self.tell())
 
     def index(self, b):
-        location = self.find(b)
-
-        if location == -1:
-            raise ValueError('{} not found'.format(b))
-
-        return location
+        return self.getvalue().index(b, self.tell())
 
     def read_bool(self):
         return self.read(1) != b'\x00'
