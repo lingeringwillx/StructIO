@@ -40,18 +40,14 @@ class StructIO(io.BytesIO):
 
     @buffer.setter
     def buffer(self, b):
-        position = self.tell()
         self.seek(0)
         self.write(b)
         self.truncate()
-
-        if position < len(b):
-            self.seek(position)
+        self.seek(0)
 
     def __len__(self):
         position = self.tell()
-        self.seek(0, 2)
-        length = self.tell()
+        length = self.seek(0, 2)
         self.seek(position)
         return length
 

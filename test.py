@@ -20,16 +20,13 @@ class ExampleTest(unittest.TestCase):
 
 class GenericStreamMethodsTest(unittest.TestCase):
     def testbufgettersetter(self):
-        stream = StructIO()
+        stream = StructIO(b'Test')
         self.assertEqual(stream.buffer, stream.getvalue())
 
         stream.seek(4)
         stream.buffer = b'Unit Test'
         self.assertEqual(b'Unit Test', stream.getvalue())
-
-        stream.seek(10)
-        stream.buffer = b'Unit Test'
-        self.assertEqual(9, stream.tell())
+        self.assertEqual(0, stream.tell())
 
     def testlen(self):
         stream = StructIO(b'Unit Test')
