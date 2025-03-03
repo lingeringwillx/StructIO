@@ -116,11 +116,11 @@ Converts *number* into a bytes buffer with length *size* and endian *endian*, th
 
 **read_ints(size, n endian=None, signed=False)**
 
-Reads *n* integers of *size* bytes from the buffer. Can be faster than *read_int* when multiple reads are required but limited to sizes 1, 2, 4, 8.
+Reads *n* integers of *size* bytes from the buffer. Can be faster than *read_int* when multiple reads are required but limited to sizes 1, 2, 4, and 8.
 
 **write_ints(numbers, size, endian=None, signed=False)**
 
-Converts a list of integers *numbers* into a bytes buffer with length *size* and endian *endian*, then writes it into the buffer. Can be faster than *write_int* when multiple writes are required but limited to sizes 1, 2, 4, 8.
+Converts a list of integers *numbers* into a bytes buffer with length *size* and endian *endian*, then writes it into the buffer. Can be faster than *write_int* when multiple writes are required but limited to sizes 1, 2, 4, and 8.
 
 **read_float(size, endian=None)**
 
