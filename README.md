@@ -1,13 +1,5 @@
 A small Python library based on the BytesIO object from the standard library, designed to make parsing and editing binary files easier.
 
-### Installation
-
-Using pip: 
-
-```
-pip install structio
-```
-
 ### Example
 
 Writing to a stream:
